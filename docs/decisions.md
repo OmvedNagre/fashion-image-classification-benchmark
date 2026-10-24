@@ -39,6 +39,8 @@ Rules:
 | D-023 | 2026-10-24 | v1/03 | LR validation rerun chronology and timing limitation | Active |
 | D-024 | 2026-10-24 | v1/03 | Exclude contaminated LR timings from speed comparisons | Active |
 | D-025 | 2026-10-24 | v1/03 | Post-review consistency: weight-map plot moved to notebook; result annotation rule | Active |
+| D-026 | 2026-10-25 | v1/04 | LinearSVC dual optimization and convergence behavior across feature sets | Active |
+| D-027 | 2026-10-25 | v1/04 | RBF SVM stratified 10k subset tuning and full 60k refit scaling | Active |
 
 ---
 
