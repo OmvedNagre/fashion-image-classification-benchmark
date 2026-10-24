@@ -1,4 +1,17 @@
+# secrets / scratch
 .scratch/
 .env
 .env.*
 !.env.example
+
+# big files rebuilt by code (see docs/decisions.md D-009)
+data/raw/
+data/processed/
+features/
+
+# python / jupyter / OS clutter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+.DS_Store

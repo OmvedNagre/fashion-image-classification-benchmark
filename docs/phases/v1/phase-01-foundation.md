@@ -52,7 +52,7 @@ None. This is the first phase. The repo contains only the docs.
 - `decisions.md` → D-001, D-003, D-006, D-007, D-009, D-012
 
 ## Tasks
-- [ ] 01.1 — Skeleton folders, `.gitignore`, pinned `requirements.txt`, README setup section → `chore(setup): add project skeleton and environment setup`
+- [x] 01.1 — Skeleton folders, `.gitignore`, pinned `requirements.txt`, README setup section → `chore(setup): add project skeleton and environment setup`
 - [ ] 01.2 — `src/config.py` + `src/utils.py` → `feat(core): add config constants and utils`
 - [ ] 01.3 — `download_raw()` with MD5 check + `load_raw()` IDX parser → `feat(data): download and verify Fashion-MNIST IDX files`
 - [ ] 01.4 — `run_sanity_checks()` → `feat(data): add dataset sanity checks`
