@@ -1,0 +1,54 @@
+{
+ "experiment": "logreg_hog",
+ "model": "logreg",
+ "features": "hog",
+ "split": "val",
+ "train_subset": null,
+ "grid": {
+  "C": [
+   0.01,
+   0.1,
+   1,
+   10
+  ]
+ },
+ "rows": [
+  {
+   "params": {
+    "C": 0.01
+   },
+   "fit_s": 11.21,
+   "val_acc": 0.8927,
+   "val_macro_f1": 0.8926
+  },
+  {
+   "params": {
+    "C": 0.1
+   },
+   "fit_s": 12.88,
+   "val_acc": 0.8857,
+   "val_macro_f1": 0.8856
+  },
+  {
+   "params": {
+    "C": 1
+   },
+   "fit_s": 26.7,
+   "val_acc": 0.8713,
+   "val_macro_f1": 0.8714
+  },
+  {
+   "params": {
+    "C": 10
+   },
+   "fit_s": 84.1,
+   "val_acc": 0.863,
+   "val_macro_f1": 0.8633
+  }
+ ],
+ "best_params": {
+  "C": 0.01
+ },
+ "best_val_acc": 0.8927,
+ "timestamp": "2026-10-24T22:08:45"
+}

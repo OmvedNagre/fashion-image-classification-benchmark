@@ -11,6 +11,7 @@ SEED = 42
 VAL_SIZE = 6000            # validation images carved from the official 60k train set (D-003)
 SVM_TUNE_SUBSET = 10000    # train subset used to tune the RBF SVM (D-005)
 N_JOBS = 4                 # parallel workers; capped for an 8 GB laptop
+LOGREG_MAX_ITER = 5000     # allow the full LR grid to converge (D-020)
 
 # --- Labels ------------------------------------------------------------------
 CLASS_NAMES = [

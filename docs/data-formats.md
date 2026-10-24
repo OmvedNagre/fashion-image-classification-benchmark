@@ -106,6 +106,7 @@ Rows are in the same order as the matching `y_{split}`. `trainval` rows are trai
 - `y_pred` is in the same order as `y_test`. It's stored so phase 05 can draw misclassified images and compare
   models without retraining anything (~30 KB per file).
 - `train_time_s` is the final fit on all 60k (`trainval`).
+- Optional `timing_comparable` (bool, defaults to true when absent) and `timing_note` (str) record known timing contamination. When false, preserve the raw timing values for provenance but exclude both from speed comparisons. This flag does not invalidate accuracy or other predictive metrics.
 
 ## 9. Stability check — `results/metrics/{name}_{kind}_cv.json` (COMMITTED, best model only)
 ```json
@@ -129,6 +130,7 @@ Any repeat must be explained in `decisions.md`.
 
 ## 11. Summary table — `results/summary.csv` (COMMITTED)
 One row per `*_test.json`, built by `results.build_summary()`.
+For `timing_comparable=false`, retain the experiment and its accuracy metrics, but write empty/NaN training and inference times. Never substitute zero. Speed plots and rankings must exclude these missing times and name the excluded experiments in a note. Raw measurements remain in the source JSON.
 | Column | Type |
 |---|---|
 | `experiment`, `model`, `features` | str |
@@ -143,3 +145,8 @@ One row per `*_test.json`, built by `results.build_summary()`.
 - Name pattern: `{stage}_{what}.png`. `stage` is one of `eda`, `features`, `linear`, `treekernel`, `results`, `errors`.
   Examples: `eda_sample_grid.png`, `features_hog_examples.png`, `linear_knn_val_curve_pixels.png`,
   `results_acc_vs_time.png`, `errors_misclassified_shirt_vs_tshirt.png`.
+
+Phase 03 produces `linear_logreg_val_curve_pixels.png`, `linear_logreg_val_curve_hog.png`,
+`linear_knn_val_curve_pixels.png`, `linear_knn_val_curve_hog.png`, and `linear_logreg_weights.png`.
+LR curves show every C; kNN curves hold the validation-winning weights/metric fixed while varying k.
+Weight maps are 2×5 standardised-pixel coefficient maps with one symmetric colour scale.

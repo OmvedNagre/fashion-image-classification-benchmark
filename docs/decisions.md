@@ -32,6 +32,11 @@ Rules:
 | D-017 | 2026-10-24 | v1/02 | Final HOG config: orientations 12, cells 4×4, blocks 2×2 (1,728-d) | Active |
 | D-018 | 2026-10-24 | v1/02 | Harness details: best = strict max val acc, sequential CV, test-log warning | Active |
 | D-019 | 2026-10-24 | v1/02 | Test features are only built inside final_test_run() | Active |
+| D-020 | 2026-10-24 | v1/03 | Increase LR iteration budget to reach convergence | Active |
+| D-021 | 2026-10-24 | v1/03 | Reuse saved experiment results when restarting notebook 03 | Active |
+| D-022 | 2026-10-24 | v1/03 | Plot LR coefficients in standardised-pixel coordinates | Active |
+| D-023 | 2026-10-24 | v1/03 | LR validation rerun chronology and timing limitation | Active |
+| D-024 | 2026-10-24 | v1/03 | Exclude contaminated LR timings from speed comparisons | Active |
 
 ---
 
@@ -837,3 +842,93 @@ reviewers of teammates' PRs. The cost is a few seconds in phase 03.
 
 **Revisit if**
 Never for v1.
+
+### D-020 — Increase LR iteration budget to reach convergence
+- **Date:** 2026-10-24
+- **Phase:** v1/03 — Dummy, Logistic Regression & kNN
+- **Status:** Active
+- **Type:** algorithm
+
+**Context**
+Initial validation fits for pixel LR at C=1 and C=10 emitted ConvergenceWarning at 1,000 iterations.
+
+**Decision**
+Use config.LOGREG_MAX_ITER=5000 for all LR fits, following system-design.md §7. Rerun the full validation grid; parameters remain fixed from the initial full sweep. See D-023 for execution chronology.
+
+**Why**
+An unfinished optimisation can distort the validation curve. Raising the budget preserves the model, solver, seed and C grid; suppressing warnings or removing grid points would hide the issue.
+
+**Files touched**
+- `src/config.py`, `src/models_linear.py`, `docs/module-interfaces.md` — shared iteration budget and documented interface.
+
+### D-021 — Reuse saved experiment results when restarting notebook 03
+- **Date:** 2026-10-24
+- **Phase:** v1/03 — Dummy, Logistic Regression & kNN
+- **Status:** Active
+- **Type:** edge-case
+
+**Context**
+Notebook 03 must run top-to-bottom with outputs, while test_log.csv must contain exactly one evaluation per experiment.
+
+**Decision**
+Read saved validation/test JSONs if present. Missing validation results run the full documented grid; missing test results call final_test_run once, unless the audit log already records that experiment (recover its saved metrics first). A saved test result with different selected parameters raises an error requiring investigation. Plotting always uses stored validation rows and the same selected parameters.
+
+**Why**
+Unconditional test calls during Restart & Run All would repeat test evaluation. A missing-file guard preserves the audit trail and makes figures reproducible. This does not alter the shared harness or hide repeats: any explicit rerun still needs a decision entry and remains in the append-only log.
+
+**Files touched**
+- `notebooks/03_linear_knn.ipynb` — orchestration and saved-result guards.
+
+### D-022 — Plot LR coefficients in standardised-pixel coordinates
+- **Date:** 2026-10-24
+- **Phase:** v1/03 — Dummy, Logistic Regression & kNN
+- **Status:** Active
+- **Type:** algorithm
+
+**Context**
+The final-test harness returns metrics, not fitted models. Phase 03 still needs per-class pixel LR weight maps.
+
+**Decision**
+Refit the validation-selected pixel LR Pipeline on trainval for the figure only; never load or predict test data for this refit. Plot the classifier's coefficients directly in standardised-pixel coordinates, using one symmetric colour scale across all ten classes.
+
+**Why**
+This preserves the harness interface and avoids serialising a model. A coefficient measures score change per standardised pixel unit; dividing by scaler.scale_ would instead express raw-brightness effects and overemphasise rare low-variance pixels. The axis label and notebook explain the chosen interpretation.
+
+**Files touched**
+- `src/models_linear.py`, `docs/module-interfaces.md`, `notebooks/03_linear_knn.ipynb` — weight-map function, interface and explanation.
+
+### D-023 — LR validation rerun chronology and timing limitation
+- **Date:** 2026-10-24
+- **Phase:** v1/03 — Dummy, Logistic Regression & kNN
+- **Status:** Active
+- **Type:** tooling
+
+**Context**
+Both complete initial LR grids selected C=0.01. Those selected fits converged at the original 1,000-iteration cap; only pixel C=1 and C=10 warned. The convergence-only rerun used 5,000 iterations. Final LR fits began while the tail of that validation rerun was still active.
+
+**Decision**
+Keep the original validation-selected C=0.01 for both final tests and preserve their single recorded evaluations. The completed higher-budget sweep independently selected the same C values. No test result influenced any hyperparameter choice. Do not rerun test evaluations just to improve timings.
+
+**Why**
+The parameter choice was already determined by full validation sweeps, and the selected configurations had converged. The overlap is nevertheless a measurement limitation: LR fit/predict timings may include contention from the validation process. Treat timings as descriptive laptop measurements, not isolated performance estimates. The kNN final evaluations ran after all tuning had ended.
+
+**Files touched**
+- `docs/decisions.md`, phase 03 handoff and PR — disclose chronology and timing limitations; metrics and append-only audit are preserved.
+
+### D-024 — Exclude contaminated LR timings from speed comparisons
+- **Date:** 2026-10-24
+- **Phase:** v1/03 — PR review fix
+- **Status:** Active
+- **Type:** data
+
+**Context**
+D-023 disclosed timing contention in prose, but Phase 05 could still consume the ordinary numeric fields as comparable measurements.
+
+**Decision**
+Annotate both existing LR test JSONs with `timing_comparable=false` and a reason. Preserve every original field, including raw timings, predictions and timestamps. The optional flag defaults to true when absent. Phase 05 must replace both flagged summary timings with NaN and exclude them from speed comparisons, while retaining predictive metrics. Displayed raw timings in notebook 03 carry an explicit caution.
+
+**Why**
+A machine-readable exclusion plus an explicit aggregation contract prevents these observations from silently entering speed rankings. There is no need to repeat test evaluation or manufacture replacement measurements.
+
+**Files touched**
+- Two LR test JSONs, `docs/data-formats.md`, phase 03/05 handoffs and notebook 03.

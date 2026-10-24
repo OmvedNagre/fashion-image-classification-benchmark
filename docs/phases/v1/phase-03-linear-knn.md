@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Owner | _TBD_ (set when the phase starts) |
-| Status | not-started |
+| Owner | Rajat Srivastav |
+| Status | review |
 | Branch | `phase/v1-03-linear-knn` |
 | Depends on | Phase v1/02 |
 | PRD features | F-09 |
@@ -56,19 +56,19 @@ From v1/02 (merged 2026-10-24):
 - `system-design.md` → Flow C, §7 (LR convergence)
 
 ## Tasks
-- [ ] 03.1 — `src/models_linear.py` with factories + grids → `feat(models): add dummy, logistic regression and kNN factories`
-- [ ] 03.2 — Dummy baseline runs (both features) → `feat(linear): run dummy baseline`
-- [ ] 03.3 — LR tuning + final test (both features) + validation curves → `feat(linear): tune and evaluate logistic regression`
-- [ ] 03.4 — kNN tuning + final test (both features) + validation curves → `feat(linear): tune and evaluate kNN`
-- [ ] 03.5 — LR weight heatmaps + notebook write-up (softmax/cross-entropy, role of C, why kNN is slow at predict time, curse of dimensionality) → `feat(linear): add LR weight maps and analysis`
-- [ ] 03.6 — Update docs touched by this phase → `docs(phase-03): update docs and decisions`
+- [x] 03.1 — `src/models_linear.py` with factories + grids → `feat(models): add dummy, logistic regression and kNN factories`
+- [x] 03.2 — Dummy baseline runs (both features) → `feat(linear): run dummy baseline`
+- [x] 03.3 — LR tuning + final test (both features) + validation curves → `feat(linear): tune and evaluate logistic regression`
+- [x] 03.4 — kNN tuning + final test (both features) + validation curves → `feat(linear): tune and evaluate kNN`
+- [x] 03.5 — LR weight heatmaps + notebook write-up (softmax/cross-entropy, role of C, why kNN is slow at predict time, curse of dimensionality) → `feat(linear): add LR weight maps and analysis`
+- [x] 03.6 — Update docs touched by this phase → `docs(phase-03): update docs and decisions`
 
 ## Done criteria
-- [ ] 6 `*_val.json` + 6 `*_test.json` (dummy, logreg, knn × pixels, hog)
-- [ ] `test_log.csv` has exactly one row per experiment
-- [ ] Pixel accuracies within the sanity ranges (or a logged explanation)
-- [ ] `03_linear_knn.ipynb` runs top-to-bottom
-- [ ] Docs match what was built; decisions logged
+- [x] 6 `*_val.json` + 6 `*_test.json` (dummy, logreg, knn × pixels, hog)
+- [x] `test_log.csv` has exactly one row per experiment
+- [x] Pixel accuracies within the sanity ranges (or a logged explanation)
+- [x] `03_linear_knn.ipynb` runs top-to-bottom
+- [x] Docs match what was built; decisions logged
 
 ## How to verify
 1. `results/test_log.csv`: 6 rows, no repeated experiment.
@@ -77,10 +77,13 @@ From v1/02 (merged 2026-10-24):
    at the end. Every re-run appends to `test_log.csv`, so explain any repeat in `decisions.md` and the PR (never edit the log by hand).
 
 ## Phase summary
-- **Built:**
-- **Key decisions:**
-- **Known limitations:**
-- **Next phase should know:**
+- **Built:** Three unfitted Pipeline factories and exact grids; six complete validation/test JSON pairs; four validation curves; 2×5 pixel LR coefficient maps; executed notebook with theory and findings. Scratch checks verified all schemas, grid combinations, validation selections, 10,000 predictions per test, confusion totals, and six unique audit rows. Nine notebook code cells completed without errors; restarting preserved the audit log byte-for-byte. Split MD5 remains `54ff6b78b27109cdfc3ebe7204040a07`.
+- **Key results:** Dummy val/test 10% for both features. LR C=0.01: pixels val 86.42%, test 84.72%; HOG val 89.27%, test 88.86%. kNN k=3/distance: pixels Manhattan val 87.47%, test 86.11%; HOG Euclidean val 87.28%, test 86.31%. Pixel LR is near the approximate ~84% target; pixel kNN is 0.11 percentage points above 86%, consistent with the approximate ~85–86% range and validation-selected Manhattan distance. No parameters were changed in response to test scores.
+- **Key decisions:** D-020 raises the LR iteration cap to 5,000 after convergence warnings; all rerun grid fits converged. D-021 reuses stored results on notebook restart and stops if metrics are missing for an already logged test. D-022 plots standardised coefficients via a trainval-only refit. D-023 discloses overlap between LR final fits and the tail of the convergence-only validation rerun; selected C values came from complete initial validation sweeps and were confirmed unchanged.
+- **Known limitations:** Single holdout validation; LR optimum may lie beyond the smallest prescribed C. kNN prediction is slow (pixels ~6,927 ms/1,000; HOG ~731 ms/1,000) and stores ~189/415 MB respectively. Timings vary with hardware/background load; LR timings include concurrent validation load (D-023). Weight maps are discriminative templates, not causal explanations. Direct upstream push was denied, so the branch is published from Rajat's fork for review.
+- **Next phase should know:** Wait for this PR to merge. Preserve the six test results and append-only log; notebook restarts load them instead of retesting. Use the unchanged split/HOG configuration and shared harness. Keep scaling in Pipelines; use the Phase 04 documented SVM tuning subset. No Phase 04 or Phase 05 implementation was added.
 
 ## Next phase preview
+Timing handoff (D-024): both LR test JSONs set `timing_comparable=false`. Phase 05 must preserve their accuracy results but use NaN for both summary timing columns and exclude them from speed plots/rankings. The raw measurements remain available for provenance; no test evaluation was repeated.
+
 Phase 04 adds Random Forest, LinearSVC and RBF SVM through the same harness, with RBF-SVM tuning on a 10k subset.
