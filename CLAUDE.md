@@ -7,7 +7,10 @@ with error analysis that motivates the Phase 2 CNN. Built by a 5-person student 
 @AGENTS.md
 
 ## Step-by-step contributor workflow and troubleshooting
-@CONTRIBUTING.md
+- **Working for a team member** (`git config user.name` is not `Rajdeep`): read `CONTRIBUTING.md` fully before doing
+  anything, and follow its steps for branching, commits, closing the phase and the PR.
+- **Working for the team lead** (`git config user.name` is `Rajdeep`): no need to read `CONTRIBUTING.md`; the lead
+  already knows the workflow. Read it only when asked or when editing it. (This overrides AGENTS.md §2 / §7 for the lead.)
 
 ## Profile
 **profile: lean**: no tests, CI, Docker or devops files committed. Throwaway checks go in `.scratch/` (gitignored), run with `python .scratch/<file>.py`.
