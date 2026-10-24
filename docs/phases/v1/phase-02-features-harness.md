@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Owner | Rajdeep |
-| Status | in-progress |
+| Status | review |
 | Branch | `phase/v1-02-features-harness` |
 | Depends on | Phase v1/01 |
 | PRD features | F-05, F-06, F-07, F-08, S-02 |
@@ -64,12 +64,12 @@ From v1/01 (merged 2026-10-24):
 - [x] 02.6 — Update docs touched by this phase → `docs(phase-02): update docs and decisions`
 
 ## Done criteria
-- [ ] Cached features exist for pixels and the chosen HOG config for train / val / trainval (test is built on demand by `final_test_run()`, D-019)
-- [ ] `hog_sweep.csv` has 12 rows. The chosen config is justified in `decisions.md`
-- [ ] The harness is verified end to end on a tiny model **against a temporary results folder**, so the real
+- [x] Cached features exist for pixels and the chosen HOG config for train / val / trainval (test is built on demand by `final_test_run()`, D-019)
+- [x] `hog_sweep.csv` has 12 rows. The chosen config is justified in `decisions.md`
+- [x] The harness is verified end to end on a tiny model **against a temporary results folder**, so the real
       `results/metrics/` and `test_log.csv` stay empty until phase 03
-- [ ] Notebook 02 runs top-to-bottom with no errors
-- [ ] Docs match what was built; decisions logged
+- [x] Notebook 02 runs top-to-bottom with no errors
+- [x] Docs match what was built; decisions logged
 
 ## How to verify
 1. Scratch test (`.scratch/test_harness.py`): point the config paths at a temp folder, run `tune_on_val` + `final_test_run` with
@@ -79,10 +79,24 @@ From v1/01 (merged 2026-10-24):
 3. Notebook 02 → Restart & Run All.
 
 ## Phase summary
-- **Built:**
-- **Key decisions:**
-- **Known limitations:**
-- **Next phase should know:**
+- **Built:** `src/features.py` (`extract_pixels`, `extract_hog`, cached `get_features(kind, split)`, `get_labels`,
+  `hog_tag`, `run_hog_sweep`); `src/evaluate.py` (`evaluate`, `model_size_bytes`, `model_size_detail`, `environment`);
+  `src/experiment.py` (`tune_on_val`, `final_test_run`, `cross_validate_best`, `stratified_subset`, test log);
+  `utils.save_json` / `display_path`; `results/hog_sweep.csv`; `notebooks/02_features.ipynb` + 3 figures `features_*.png`.
+- **Key results:** HOG sweep (proxy SGD linear SVM, val): **o12_p4_c2 = 0.8818** (1,728-d, chosen), o9_p4_c2 0.8783,
+  … o6_p7_c1 0.7612. 4×4 cells ≫ 7×7; 2×2 blocks > 1×1. HOG extraction ≈ 0.22 s / 1,000 images.
+  Harness verified against a temp folder: tuning provably never reads test, scaler learns from training rows only,
+  the test log warns on re-runs. Fresh clone runs notebooks 01–02 with 0 errors and byte-identical figures.
+  **`results/metrics/` and `results/test_log.csv` are still empty: the test set has not been touched yet.**
+- **Key decisions:** D-016 (SGD proxy, fixed 30 epochs), D-017 (HOG o12_p4_c2), D-018 (harness rules), D-019 (test features
+  only via `final_test_run`).
+- **Known limitations:** the exact `LinearSVC` solver is very slow on 54k × 1,728 HOG (>10 min per fit). Phase 04's
+  LinearSVC may need `dual=False` plus patience, or a documented subset. `tune_on_val` picks the strict max val accuracy;
+  "prefer simpler within 0.3 points" is a manual, logged choice.
+- **Next phase should know:** build a model as a factory returning an *unfitted* Pipeline (scaler inside for LR/kNN/SVM), then:
+  `best, table = tune_on_val(name, make_fn, GRID, kind)` → `final_test_run(name, make_fn, best, kind)`. Run
+  `final_test_run` **once per experiment** at the very end (every call is logged). The first test call builds the test
+  feature cache (~3 s for HOG). Copy notebook 01's first cell for imports.
 
 ## Next phase preview
 Phase 03 writes the model factories for Dummy, Logistic Regression and kNN, then runs them through this harness on both feature sets.
