@@ -59,7 +59,6 @@ fashion-image-classification-benchmark/
 │   └── 05_results_analysis.ipynb
 ├── data/
 │   ├── raw/                   # downloaded .gz IDX files            (gitignored)
-│   ├── processed/             # cached arrays                       (gitignored)
 │   └── splits/val_indices.npy # the fixed 6k validation indices     (COMMITTED)
 ├── features/                  # cached feature matrices             (gitignored)
 ├── results/                   # COMMITTED: what the professor reads

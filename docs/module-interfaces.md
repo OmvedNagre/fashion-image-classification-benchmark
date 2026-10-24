@@ -26,8 +26,8 @@ Conventions:
 |---|---|---|---|
 | `download_raw()` | — | None | `RuntimeError` on a network failure or MD5 mismatch (the bad file is deleted) |
 | `load_raw()` | — | `(X_train_full, y_train_full, X_test, y_test)`, uint8 images (N,28,28), int64 labels | `RuntimeError` if the files are missing (tells you to run `download_raw()`) |
-| `run_sanity_checks()` | — | dict: shapes, dtypes, label range, NaN count, class counts, duplicates within train, train–test duplicate count | — |
-| `load_splits()` | — | dict with keys from `data-formats.md` §4 | Creates and saves `val_indices.npy` on the first call. Prints its MD5 |
+| `run_sanity_checks()` | — | dict with keys `train_shape`, `test_shape`, `image_dtype`, `label_dtype`, `pixel_range`, `label_range`, `nan_count`, `train_class_counts`, `test_class_counts`, `duplicates_within_train`, `duplicates_within_test`, `test_images_also_in_train`. Also prints them | `RuntimeError` if shapes, label range, NaNs or class counts are wrong |
+| `load_splits()` | — | dict with keys from `data-formats.md` §4 | Creates and saves `val_indices.npy` on the first call. Prints its MD5. `RuntimeError` if the saved file isn't a valid 6,000-index, 600-per-class split |
 
 ## `src/features.py`
 | Function | Takes | Returns | Notes |

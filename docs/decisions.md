@@ -26,6 +26,8 @@ Rules:
 | D-011 | 2026-10-24 | planning | Store test predictions (y_pred) in each test JSON | Active |
 | D-012 | 2026-10-24 | planning | Download raw files over HTTPS from the official GitHub repo | Active |
 | D-013 | 2026-10-24 | planning | One owner per phase, delivered as a reviewed PR; AGENTS.md + PR template | Active |
+| D-014 | 2026-10-24 | v1/01 | No `data/processed/` cache; load straight from the .gz files | Active |
+| D-015 | 2026-10-24 | v1/01 | EDA design: train-only, 5k subsample, PCA→50 before t-SNE, notebook import cell | Active |
 
 ---
 
@@ -243,6 +245,10 @@ Each control is one or two lines of code but closes a specific question an exami
 - sklearn Pipeline: chains preprocessing and model so `fit` and `predict` apply each step correctly.
 - Stateless vs fitted transform: HOG/flatten have no learned parameters, while a scaler learns mean/std from data.
 
+**Finding (2026-10-24, phase 01):** `run_sanity_checks()` found **0** exact duplicates inside train, 0 inside test,
+and 0 test images that also appear in train (MD5 hash per image). So rule 5 (keep duplicates) changes nothing in practice,
+and there is no image-level train/test leakage in the official split.
+
 **Revisit if**
 A new preprocessing step that learns from data (e.g. PCA) is added. It must go inside the Pipeline.
 
@@ -326,6 +332,8 @@ and these are the checksums the dataset authors publish.
 Stream each file through `hashlib.md5()` and compare the hex digest to the expected value. On a mismatch, delete the
 file and raise `RuntimeError("checksum mismatch for <file>: re-run to download again")`. The expected values are copied
 from github.com/zalandoresearch/fashion-mnist during phase 01 and verified against the actual download.
+**Confirmed 2026-10-24 (phase 01):** all four official MD5s matched the real download, and a truncated file was correctly
+detected and deleted. Download over HTTPS from GitHub took ~5 minutes in total.
 
 **Files touched**
 - `src/config.py`, `src/data.py` (phase 01); `docs/prd.md` F-01
@@ -596,3 +604,78 @@ template makes every PR summarise its results and tick the leakage checklist, so
 
 **Revisit if**
 Phases need to run in parallel. Then split shared code (harness) earlier, or let later phases branch from an unmerged branch.
+
+---
+
+### D-014 — No `data/processed/` cache; load straight from the .gz files
+- **Date:** 2026-10-24
+- **Phase:** v1/01 — Foundation & Data
+- **Status:** Active
+- **Type:** data
+
+**Context**
+`architecture.md` planned a `data/processed/` folder of cached `.npy` arrays. In practice `load_raw()` reads and
+decompresses all 70k images in well under a second.
+
+**Decision**
+Drop `data/processed/`. `load_splits()` always reads the verified `.gz` files and applies the committed split.
+
+**Alternatives considered**
+| Option | Why not chosen |
+|---|---|
+| Cache float32 arrays in `data/processed/` | Saves <1 s, adds a second copy of the data that could go stale |
+
+**Why**
+One source of truth (the checksummed raw files + `val_indices.npy`) is simpler and cannot drift.
+
+**Files touched**
+- `.gitignore`, `docs/architecture.md`, `docs/phases/v1/phase-01-foundation.md`
+
+**Revisit if**
+Loading ever becomes slow (it won't for 70k 28×28 images). Feature caching in phase 02 is a separate thing and stays.
+
+---
+
+### D-015 — EDA design: train-only, 5k subsample, PCA→50 before t-SNE, notebook import cell
+- **Date:** 2026-10-24
+- **Phase:** v1/01 — Foundation & Data
+- **Status:** Active
+- **Type:** algorithm
+
+**Context**
+The EDA has to show which classes overlap, without leaking information from val/test, and run quickly on a laptop.
+
+**Decision**
+- EDA uses only `X_train`/`y_train`. The notebook deletes the split dict right after taking the train arrays.
+- PCA is fit on all 54k train images (explained-variance curve). The 2-D PCA plot and t-SNE use the **same 5k random subsample** (seed 42).
+- t-SNE runs on the first 50 PCA components (perplexity 30, `init="pca"`, seed 42). It takes ~10 s on the M3.
+- Class similarity = cosine similarity between class-mean images (model-free).
+- Every notebook starts with a small cell that adds the repo root to `sys.path`, because VS Code runs notebooks from `notebooks/`.
+
+**Alternatives considered**
+| Option | Why not chosen |
+|---|---|
+| t-SNE on raw 784-d pixels | Slower and noisier; PCA→50 is standard practice |
+| t-SNE on all 54k | Minutes instead of seconds and an unreadable plot |
+| `pip install -e .` package / VS Code settings file | More setup for teammates than a 3-line cell |
+
+**Why**
+These are the standard, explainable choices. The subsample keeps plots readable. Train-only keeps the "no leakage" story clean.
+
+**How it works**
+Cosine similarity of two mean images = dot product of the flattened images divided by the product of their lengths.
+1.0 means the same shape (ignoring overall brightness). Results: Coat–Shirt 0.987, Pullover–Coat 0.984,
+Pullover–Shirt 0.983, T-shirt–Shirt 0.950. 84 PCA components keep 90% of the variance, and 188 keep 95%.
+To execute the notebook outside VS Code during development, `nbformat`/`nbclient` were installed into the local env only. They are
+not project dependencies.
+
+**Files touched**
+- `notebooks/01_data_eda.ipynb`, `results/figures/eda_*.png`, `AGENTS.md` (import cell rule), `README.md` (interpreter tip)
+
+**Concepts worth learning**
+- PCA: rotates the data onto the directions of largest variance; keeping the first k gives the best k-dim linear summary.
+- t-SNE: non-linear map that keeps close neighbours close; cluster *distances* and *sizes* on the plot are not meaningful.
+- Cosine similarity: compares direction (shape), not magnitude (brightness).
+
+**Revisit if**
+Phase 05's confusion matrices disagree with the EDA's predicted hard classes. Then discuss why in the error analysis.

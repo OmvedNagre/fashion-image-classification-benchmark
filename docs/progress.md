@@ -1,6 +1,6 @@
 # Progress
 
-**Current phase:** v1/01 — Foundation & Data (`not-started`)
+**Current phase:** v1/02 — Features & Evaluation Harness (`not-started`)
 **Branch:** —
 **Profile:** lean
 
@@ -8,7 +8,7 @@
 ### v1 — Capstone Phase 1: classical ML benchmark
 | # | Phase | Owner | Status | Branch | Started | Closed |
 |---|---|---|---|---|---|---|
-| 01 | [Foundation & Data](phases/v1/phase-01-foundation.md) | TBD | not-started | phase/v1-01-foundation | | |
+| 01 | [Foundation & Data](phases/v1/phase-01-foundation.md) | Rajdeep | done | phase/v1-01-foundation | 2026-10-24 | 2026-10-24 |
 | 02 | [Features & Evaluation Harness](phases/v1/phase-02-features-harness.md) | TBD | not-started | phase/v1-02-features-harness | | |
 | 03 | [Dummy, Logistic Regression & kNN](phases/v1/phase-03-linear-knn.md) | TBD | not-started | phase/v1-03-linear-knn | | |
 | 04 | [Random Forest & SVM](phases/v1/phase-04-rf-svm.md) | TBD | not-started | phase/v1-04-rf-svm | | |
@@ -22,6 +22,11 @@ each phase starts. Full workflow: [`AGENTS.md`](../AGENTS.md) §6.
 
 ## Session log
 <!-- Newest first. 2–4 lines per session. Keep only the last ~10 sessions; older ones are in git history. -->
+### 2026-10-24 (phase v1/01)
+- Done: all 7 tasks of v1/01. Data verified (official MD5s), sanity checks (0 duplicates/overlap), fixed split committed, EDA notebook + 8 figures. Fresh-clone run reproduces everything.
+- Next: approved by the team lead and merged to `main` directly (no PR for this phase, lead's call). The v1/02 owner starts next.
+- Blockers: none.
+
 ### 2026-10-24
 - Done: Ran /init-project. Wrote PRD, architecture, system design, data formats, module interfaces, decisions D-001 to D-012, and the 5 v1 phase files.
 - Next: assign owners; owner of v1/01 starts the phase (AGENTS.md §6.1, or `/phase-start v1/01` in Claude Code).
