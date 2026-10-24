@@ -5,7 +5,8 @@ We compare **Logistic Regression, kNN, Random Forest and SVM** on **raw pixels v
 [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist), measure accuracy / speed / size, and analyse which
 classes get confused and why. (Capstone Phase 1. Phase 2 adds a CNN.)
 
-> Contributors and AI agents: read [`AGENTS.md`](AGENTS.md) first. Project docs live in [`docs/`](docs/README.md).
+> **Team members:** start with [`CONTRIBUTING.md`](CONTRIBUTING.md) (step-by-step) and [`AGENTS.md`](AGENTS.md) (rules).
+> Project docs live in [`docs/`](docs/README.md).
 
 ## Setup
 

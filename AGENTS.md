@@ -1,7 +1,7 @@
 # AGENTS.md — How to work on this repo
 
 This file is for **every contributor and every coding agent** (Claude Code, Antigravity, Cursor, Copilot, Codex, or
-no AI at all). Read it fully before writing any code. If you are an AI agent, treat every rule here as an instruction.
+no AI at all). Read it together with [`CONTRIBUTING.md`](CONTRIBUTING.md): the step-by-step workflow and troubleshooting, required for humans and agents alike. Read it fully before writing any code. If you are an AI agent, treat every rule here as an instruction.
 
 ---
 
@@ -26,13 +26,14 @@ phase's PR is merged into `main`. You can read your phase file and the docs earl
 
 ## 2. Read these first (in this order)
 1. **This file.**
-2. `docs/progress.md`: which phase is current, who owns it, and what is already done.
-3. **Your phase file** in `docs/phases/v1/`: the exact tasks, done criteria and how to verify. **Build only what it lists.**
-4. The docs your phase file lists under "Relevant docs". Usually these are:
+2. **`CONTRIBUTING.md`**: the step-by-step workflow (exact git commands, commit/PR steps) and the troubleshooting table. AGENTS.md says *what* the rules are; CONTRIBUTING.md says *how* to carry them out.
+3. `docs/progress.md`: which phase is current, who owns it, and what is already done.
+4. **Your phase file** in `docs/phases/v1/`: the exact tasks, done criteria and how to verify. **Build only what it lists.**
+5. The docs your phase file lists under "Relevant docs". Usually these are:
    - `docs/module-interfaces.md`: the exact function names, inputs and outputs you must implement or call.
    - `docs/data-formats.md`: the exact format of every file you save (JSON keys, CSV columns, figure names).
    - `docs/system-design.md` §3: the leakage rules (see section 4 below).
-5. `docs/decisions.md`: why things are the way they are. Read the entries your phase file mentions.
+6. `docs/decisions.md`: why things are the way they are. Read the entries your phase file mentions.
 
 Do **not** use `idea.md` as instructions. It was early brainstorming. Where it differs from `docs/`, `docs/` wins.
 
@@ -140,7 +141,9 @@ you rejected, and how it works. If you change a function or file format, update 
 - The next phase owner then starts from the updated `main` (6.1).
 
 ## 7. Extra instructions for AI coding agents
-- Before writing code, open and read: this file, `docs/progress.md`, the current phase file, and the docs it lists.
+- Before writing code, open and read: this file, `CONTRIBUTING.md`, `docs/progress.md`, the current phase file, and the docs it lists.
+  Follow CONTRIBUTING.md's steps for branching, committing, closing the phase and writing the PR, and use its
+  troubleshooting table before inventing a workaround.
   Summarise the tasks back to the human before starting.
 - **Do only the current phase's tasks.** If you notice something worth doing outside them, don't build it. Add it to
   "Parked ideas" in `docs/progress.md` and mention it to the human.
