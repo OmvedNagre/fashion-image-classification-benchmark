@@ -22,8 +22,10 @@ This is v1 (capstone Phase 1) code-complete.
 ## In scope — exact features
 1. **Aggregation** (F-12)
    - Acceptance: `build_summary()` writes `results/summary.csv` with every experiment and the columns in `data-formats.md` §11.
+   - Honour `timing_comparable=false`: keep accuracy/model-size results, but emit NaN for both timing columns. Phase 03's two LR results carry this flag because their final runs overlapped validation work (D-024).
 2. **Comparison plots** (F-12)
    - Acceptance: `results_pixels_vs_hog.png` (RQ2), `results_acc_vs_time.png` (RQ3), `results_recall_heatmap.png` (RQ4).
+   - Exclude missing times from speed plots/rankings and state which experiments were omitted. Do not treat missing timings as zero or discard their accuracy results.
 3. **Stability check** (F-11)
    - Acceptance: `pick_best_experiment()` picks by **val** accuracy. `cross_validate_best()` writes `_cv.json` with mean ± std.
      If it's an SVM, it uses a 10k stratified subset, documented.

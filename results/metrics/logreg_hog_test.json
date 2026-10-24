@@ -10181,5 +10181,7 @@
   "cpu": "Apple M3",
   "n_jobs": 4
  },
- "timestamp": "2026-10-24T22:08:43"
+ "timestamp": "2026-10-24T22:08:43",
+ "timing_comparable": false,
+ "timing_note": "Final LR fit/evaluation overlapped validation work; exclude train_time_s and inference_ms_per_1000 from speed comparisons (D-023, D-024)."
 }

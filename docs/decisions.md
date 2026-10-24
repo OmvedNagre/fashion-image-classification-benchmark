@@ -36,6 +36,7 @@ Rules:
 | D-021 | 2026-10-24 | v1/03 | Reuse saved experiment results when restarting notebook 03 | Active |
 | D-022 | 2026-10-24 | v1/03 | Plot LR coefficients in standardised-pixel coordinates | Active |
 | D-023 | 2026-10-24 | v1/03 | LR validation rerun chronology and timing limitation | Active |
+| D-024 | 2026-10-24 | v1/03 | Exclude contaminated LR timings from speed comparisons | Active |
 
 ---
 
@@ -913,3 +914,21 @@ The parameter choice was already determined by full validation sweeps, and the s
 
 **Files touched**
 - `docs/decisions.md`, phase 03 handoff and PR — disclose chronology and timing limitations; metrics and append-only audit are preserved.
+
+### D-024 — Exclude contaminated LR timings from speed comparisons
+- **Date:** 2026-10-24
+- **Phase:** v1/03 — PR review fix
+- **Status:** Active
+- **Type:** data
+
+**Context**
+D-023 disclosed timing contention in prose, but Phase 05 could still consume the ordinary numeric fields as comparable measurements.
+
+**Decision**
+Annotate both existing LR test JSONs with `timing_comparable=false` and a reason. Preserve every original field, including raw timings, predictions and timestamps. The optional flag defaults to true when absent. Phase 05 must replace both flagged summary timings with NaN and exclude them from speed comparisons, while retaining predictive metrics. Displayed raw timings in notebook 03 carry an explicit caution.
+
+**Why**
+A machine-readable exclusion plus an explicit aggregation contract prevents these observations from silently entering speed rankings. There is no need to repeat test evaluation or manufacture replacement measurements.
+
+**Files touched**
+- Two LR test JSONs, `docs/data-formats.md`, phase 03/05 handoffs and notebook 03.

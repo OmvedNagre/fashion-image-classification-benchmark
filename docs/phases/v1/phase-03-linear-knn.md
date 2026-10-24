@@ -84,4 +84,6 @@ From v1/02 (merged 2026-10-24):
 - **Next phase should know:** Wait for this PR to merge. Preserve the six test results and append-only log; notebook restarts load them instead of retesting. Use the unchanged split/HOG configuration and shared harness. Keep scaling in Pipelines; use the Phase 04 documented SVM tuning subset. No Phase 04 or Phase 05 implementation was added.
 
 ## Next phase preview
+Timing handoff (D-024): both LR test JSONs set `timing_comparable=false`. Phase 05 must preserve their accuracy results but use NaN for both summary timing columns and exclude them from speed plots/rankings. The raw measurements remain available for provenance; no test evaluation was repeated.
+
 Phase 04 adds Random Forest, LinearSVC and RBF SVM through the same harness, with RBF-SVM tuning on a 10k subset.
