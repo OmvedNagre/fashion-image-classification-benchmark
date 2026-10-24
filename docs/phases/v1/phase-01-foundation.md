@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Owner | _TBD_ (set when the phase starts) |
-| Status | not-started |
+| Owner | Rajdeep |
+| Status | in-progress |
 | Branch | `phase/v1-01-foundation` |
 | Depends on | — (first phase) |
 | PRD features | F-01, F-02, F-03, F-04 |

@@ -1,14 +1,14 @@
 # Progress
 
-**Current phase:** v1/01 — Foundation & Data (`not-started`)
-**Branch:** —
+**Current phase:** v1/01 — Foundation & Data (`in-progress`)
+**Branch:** `phase/v1-01-foundation`
 **Profile:** lean
 
 ## Phases
 ### v1 — Capstone Phase 1: classical ML benchmark
 | # | Phase | Owner | Status | Branch | Started | Closed |
 |---|---|---|---|---|---|---|
-| 01 | [Foundation & Data](phases/v1/phase-01-foundation.md) | TBD | not-started | phase/v1-01-foundation | | |
+| 01 | [Foundation & Data](phases/v1/phase-01-foundation.md) | Rajdeep | in-progress | phase/v1-01-foundation | 2026-10-24 | |
 | 02 | [Features & Evaluation Harness](phases/v1/phase-02-features-harness.md) | TBD | not-started | phase/v1-02-features-harness | | |
 | 03 | [Dummy, Logistic Regression & kNN](phases/v1/phase-03-linear-knn.md) | TBD | not-started | phase/v1-03-linear-knn | | |
 | 04 | [Random Forest & SVM](phases/v1/phase-04-rf-svm.md) | TBD | not-started | phase/v1-04-rf-svm | | |
