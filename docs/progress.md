@@ -1,0 +1,40 @@
+# Progress
+
+**Current phase:** v1/01 — Foundation & Data (`not-started`)
+**Branch:** —
+**Profile:** lean
+
+## Phases
+### v1 — Capstone Phase 1: classical ML benchmark
+| # | Phase | Owner | Status | Branch | Started | Closed |
+|---|---|---|---|---|---|---|
+| 01 | [Foundation & Data](phases/v1/phase-01-foundation.md) | TBD | not-started | phase/v1-01-foundation | | |
+| 02 | [Features & Evaluation Harness](phases/v1/phase-02-features-harness.md) | TBD | not-started | phase/v1-02-features-harness | | |
+| 03 | [Dummy, Logistic Regression & kNN](phases/v1/phase-03-linear-knn.md) | TBD | not-started | phase/v1-03-linear-knn | | |
+| 04 | [Random Forest & SVM](phases/v1/phase-04-rf-svm.md) | TBD | not-started | phase/v1-04-rf-svm | | |
+| 05 | [Results, Error Analysis & README](phases/v1/phase-05-results-analysis.md) | TBD | not-started | phase/v1-05-results-analysis | | |
+
+Status values: `not-started` → `in-progress` → `review` → `done`
+
+**Team workflow:** each phase is owned by one team member → built on its own branch → opened as a PR into `main` →
+reviewed by the repo owner (with Claude Code) against the phase file and docs → merged. Owners are filled in when
+each phase starts. Full workflow: [`AGENTS.md`](../AGENTS.md) §6.
+
+## Session log
+<!-- Newest first. 2–4 lines per session. Keep only the last ~10 sessions; older ones are in git history. -->
+### 2026-10-24
+- Done: Ran /init-project. Wrote PRD, architecture, system design, data formats, module interfaces, decisions D-001 to D-012, and the 5 v1 phase files.
+- Next: assign owners; owner of v1/01 starts the phase (AGENTS.md §6.1, or `/phase-start v1/01` in Claude Code).
+- Blockers: none.
+
+## Known debt
+<!-- Shortcuts taken on purpose. Remove when paid off. -->
+- None yet.
+
+## Parked ideas
+<!-- Out-of-scope ideas that came up while building. Never built without approval. -->
+- IEEE LaTeX report (`report/`) and presentation slides inside the repo. Planned after v1 code is done.
+- PCA-reduced pixels as a third feature set (faster SVM/kNN; curse-of-dimensionality demo).
+- LBP texture features; L1 vs L2 Logistic Regression.
+- Capstone Phase 2 as `docs/phases/v2/`: small CNN on the same split + `evaluate()`, ablations (blocks, dropout,
+  augmentation), hybrid CNN-features → SVM or HOG + CNN fusion aimed at shirt/T-shirt/pullover confusion.

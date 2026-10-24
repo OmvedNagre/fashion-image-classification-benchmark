@@ -1,0 +1,89 @@
+# Module Interfaces
+
+> Last updated: 2026-10-24 — What each shared function in `src/` takes and returns.
+> This project has no API. These functions are the agreements between phases. Change a signature here **before**
+> changing the code, and update every caller (see D-010). File formats are in `data-formats.md`.
+
+Conventions:
+- All functions are plain functions. Classes are used only where sklearn needs them (Pipelines) and for `Timer`.
+- Inputs are never modified in place. Functions return new arrays/dicts.
+- Errors raise `ValueError` (bad argument) or `RuntimeError` (missing/corrupt data), with a message saying how to fix it.
+
+## `src/config.py` — constants only
+`SEED = 42`, `VAL_SIZE = 6000`, `SVM_TUNE_SUBSET = 10000`, `N_JOBS = 4`, `CLASS_NAMES` (10 str),
+`HOG_PARAMS` (dict), `RAW_URL_BASE`, `RAW_FILES` (filename → MD5), and paths `ROOT`, `DATA_RAW`, `SPLITS_DIR`,
+`FEATURES_DIR`, `METRICS_DIR`, `FIGURES_DIR`, `RESULTS_DIR`.
+
+## `src/utils.py`
+| Function | Takes | Returns | Notes |
+|---|---|---|---|
+| `set_seed(seed=SEED)` | int | None | Seeds `random` and `numpy` |
+| `Timer(label)` | str | context manager with `.seconds` | `with Timer("fit") as t: ...` prints `fit: 12.3s` |
+| `save_fig(fig, name)` | matplotlib Figure, filename without extension | `Path` | Saves `FIGURES_DIR/{name}.png` at 300 dpi, creating the folder if needed |
+
+## `src/data.py`
+| Function | Takes | Returns | Errors |
+|---|---|---|---|
+| `download_raw()` | — | None | `RuntimeError` on a network failure or MD5 mismatch (the bad file is deleted) |
+| `load_raw()` | — | `(X_train_full, y_train_full, X_test, y_test)`, uint8 images (N,28,28), int64 labels | `RuntimeError` if the files are missing (tells you to run `download_raw()`) |
+| `run_sanity_checks()` | — | dict: shapes, dtypes, label range, NaN count, class counts, duplicates within train, train–test duplicate count | — |
+| `load_splits()` | — | dict with keys from `data-formats.md` §4 | Creates and saves `val_indices.npy` on the first call. Prints its MD5 |
+
+## `src/features.py`
+| Function | Takes | Returns | Notes |
+|---|---|---|---|
+| `extract_pixels(X)` | (N,28,28) float32 | (N,784) float32 | Flatten only |
+| `extract_hog(X, orientations, pixels_per_cell, cells_per_block)` | (N,28,28) float32 + params | (N,d) float32 | `skimage.feature.hog`, L2-Hys block norm |
+| `get_features(kind, split)` | `"pixels"\|"hog"`, `"train"\|"val"\|"trainval"\|"test"` | (N,d) float32 | Loads from cache or builds and saves. `ValueError` for an unknown kind/split |
+| `get_labels(split)` | split name | (N,) int64 | Same row order as `get_features` |
+| `run_hog_sweep(grid)` | dict of lists | `pandas.DataFrame` (columns in `data-formats.md` §6) | Uses train/val only. Writes `results/hog_sweep.csv` |
+
+## `src/models_linear.py` and `src/models_tree_kernel.py`
+Every function returns a **new, unfitted** `sklearn.pipeline.Pipeline`. Scaling is included where the model needs it.
+| Function | Hyperparameters | Pipeline steps |
+|---|---|---|
+| `make_dummy()` | — | `DummyClassifier(strategy="most_frequent")` |
+| `make_logreg(C)` | C | `StandardScaler` → `LogisticRegression(max_iter=1000, random_state=SEED)` |
+| `make_knn(n_neighbors, weights, metric)` | k, weights, metric | `StandardScaler` → `KNeighborsClassifier(n_jobs=N_JOBS)` |
+| `make_rf(n_estimators, max_depth, max_features)` | as named | `RandomForestClassifier(random_state=SEED, n_jobs=N_JOBS)` (no scaler, as trees don't need one) |
+| `make_linear_svm(C)` | C | `StandardScaler` → `LinearSVC(random_state=SEED)` |
+| `make_rbf_svm(C, gamma)` | C, gamma | `StandardScaler` → `SVC(kernel="rbf")` |
+
+Default tuning grids live next to these functions as constants (e.g. `KNN_GRID`), copied from the PRD/idea.md.
+
+## `src/experiment.py` — the only module that runs train → val → test
+| Function | Takes | Returns | Side effects |
+|---|---|---|---|
+| `tune_on_val(name, make_fn, grid, kind, train_subset=None)` | model name, factory, grid dict, feature kind, optional subset size | `(best_params: dict, table: DataFrame)` | Writes `{name}_{kind}_val.json`. **Never loads test.** |
+| `final_test_run(name, make_fn, params, kind)` | as above + chosen params | metrics dict (`data-formats.md` §8) | Fits on `trainval`, calls `evaluate()`, appends to `test_log.csv` |
+| `cross_validate_best(name, make_fn, params, kind, subset=None, folds=5)` | as above | dict (`data-formats.md` §9) | Stratified K-fold on `trainval` (or a stratified subset). Writes `{name}_{kind}_cv.json` |
+
+## `src/evaluate.py`
+| Function | Takes | Returns | Notes |
+|---|---|---|---|
+| `evaluate(model, X_test, y_test, name, kind, best_params, train_time_s)` | fitted model + test data + metadata | metrics dict | Times `predict` (best of 3), computes all metrics, writes `{name}_{kind}_test.json`. Usable by any model with `.predict()`, including the Phase 2 CNN wrapper |
+| `model_size_bytes(model)` | fitted model | int | `len(pickle.dumps(model))` |
+| `model_size_detail(model)` | fitted model | dict `{type, value}` | Support vectors / tree nodes / stored samples / coefficients |
+
+## `src/results.py`
+| Function | Takes | Returns | Notes |
+|---|---|---|---|
+| `load_all_metrics(split="test")` | `"val"\|"test"\|"cv"` | list of dicts | Reads `results/metrics/*_{split}.json` |
+| `build_summary()` | — | DataFrame | Writes `results/summary.csv` |
+| `pick_best_experiment()` | — | experiment id | Highest **val** accuracy |
+| `plot_pixels_vs_hog(df)` | summary df | Figure | RQ2 |
+| `plot_acc_vs_inference(df)` | summary df | Figure | RQ3 |
+| `plot_recall_heatmap(df)` | summary df | Figure | RQ4 |
+| `plot_confusion(experiment, normalize=True)` | experiment id | Figure | |
+| `top_confused_pairs(experiment, k=5)` | experiment id | DataFrame `(true, pred, count, rate)` | Off-diagonal cells of the confusion matrix |
+| `plot_misclassified(experiment, true_c, pred_c, n=16)` | experiment id, class pair | Figure | Uses stored `y_pred` + `load_splits()["X_test"]` |
+| `model_agreement(exp_a, exp_b)` | two experiment ids | dict: both right / both wrong / only A wrong / only B wrong, plus a same-wrong-label count | |
+
+## Typical notebook usage
+```python
+from src.models_linear import make_knn, KNN_GRID
+from src.experiment import tune_on_val, final_test_run
+
+best, table = tune_on_val("knn", make_knn, KNN_GRID, kind="hog")
+metrics = final_test_run("knn", make_knn, best, kind="hog")
+```
