@@ -1,0 +1,54 @@
+{
+ "experiment": "logreg_pixels",
+ "model": "logreg",
+ "features": "pixels",
+ "split": "val",
+ "train_subset": null,
+ "grid": {
+  "C": [
+   0.01,
+   0.1,
+   1,
+   10
+  ]
+ },
+ "rows": [
+  {
+   "params": {
+    "C": 0.01
+   },
+   "fit_s": 12.4,
+   "val_acc": 0.8642,
+   "val_macro_f1": 0.8635
+  },
+  {
+   "params": {
+    "C": 0.1
+   },
+   "fit_s": 21.87,
+   "val_acc": 0.8605,
+   "val_macro_f1": 0.86
+  },
+  {
+   "params": {
+    "C": 1
+   },
+   "fit_s": 30.56,
+   "val_acc": 0.8553,
+   "val_macro_f1": 0.8545
+  },
+  {
+   "params": {
+    "C": 10
+   },
+   "fit_s": 43.51,
+   "val_acc": 0.8502,
+   "val_macro_f1": 0.8493
+  }
+ ],
+ "best_params": {
+  "C": 0.01
+ },
+ "best_val_acc": 0.8642,
+ "timestamp": "2026-10-24T22:06:29"
+}

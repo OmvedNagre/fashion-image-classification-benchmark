@@ -26,7 +26,7 @@ def make_logreg(C: float) -> Pipeline:
     """Return a new unfitted scaled multinomial Logistic Regression model."""
     return Pipeline([
         ("scale", StandardScaler()),
-        ("clf", LogisticRegression(C=C, max_iter=1000, random_state=config.SEED)),
+        ("clf", LogisticRegression(C=C, max_iter=config.LOGREG_MAX_ITER, random_state=config.SEED)),
     ])
 
 

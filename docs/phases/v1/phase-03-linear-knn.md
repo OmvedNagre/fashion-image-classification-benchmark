@@ -58,7 +58,7 @@ From v1/02 (merged 2026-10-24):
 ## Tasks
 - [x] 03.1 — `src/models_linear.py` with factories + grids → `feat(models): add dummy, logistic regression and kNN factories`
 - [x] 03.2 — Dummy baseline runs (both features) → `feat(linear): run dummy baseline`
-- [ ] 03.3 — LR tuning + final test (both features) + validation curves → `feat(linear): tune and evaluate logistic regression`
+- [x] 03.3 — LR tuning + final test (both features) + validation curves → `feat(linear): tune and evaluate logistic regression`
 - [ ] 03.4 — kNN tuning + final test (both features) + validation curves → `feat(linear): tune and evaluate kNN`
 - [ ] 03.5 — LR weight heatmaps + notebook write-up (softmax/cross-entropy, role of C, why kNN is slow at predict time, curse of dimensionality) → `feat(linear): add LR weight maps and analysis`
 - [ ] 03.6 — Update docs touched by this phase → `docs(phase-03): update docs and decisions`

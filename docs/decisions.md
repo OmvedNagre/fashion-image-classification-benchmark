@@ -32,6 +32,8 @@ Rules:
 | D-017 | 2026-10-24 | v1/02 | Final HOG config: orientations 12, cells 4×4, blocks 2×2 (1,728-d) | Active |
 | D-018 | 2026-10-24 | v1/02 | Harness details: best = strict max val acc, sequential CV, test-log warning | Active |
 | D-019 | 2026-10-24 | v1/02 | Test features are only built inside final_test_run() | Active |
+| D-020 | 2026-10-24 | v1/03 | Increase LR iteration budget to reach convergence | Active |
+| D-021 | 2026-10-24 | v1/03 | Reuse saved experiment results when restarting notebook 03 | Active |
 
 ---
 
@@ -837,3 +839,39 @@ reviewers of teammates' PRs. The cost is a few seconds in phase 03.
 
 **Revisit if**
 Never for v1.
+
+### D-020 — Increase LR iteration budget to reach convergence
+- **Date:** 2026-10-24
+- **Phase:** v1/03 — Dummy, Logistic Regression & kNN
+- **Status:** Active
+- **Type:** algorithm
+
+**Context**
+Initial validation fits for pixel LR at C=1 and C=10 emitted ConvergenceWarning at 1,000 iterations.
+
+**Decision**
+Use config.LOGREG_MAX_ITER=5000 for all LR fits, following system-design.md §7. Rerun the full validation grid before final test use.
+
+**Why**
+An unfinished optimisation can distort the validation curve. Raising the budget preserves the model, solver, seed and C grid; suppressing warnings or removing grid points would hide the issue.
+
+**Files touched**
+- `src/config.py`, `src/models_linear.py`, `docs/module-interfaces.md` — shared iteration budget and documented interface.
+
+### D-021 — Reuse saved experiment results when restarting notebook 03
+- **Date:** 2026-10-24
+- **Phase:** v1/03 — Dummy, Logistic Regression & kNN
+- **Status:** Active
+- **Type:** edge-case
+
+**Context**
+Notebook 03 must run top-to-bottom with outputs, while test_log.csv must contain exactly one evaluation per experiment.
+
+**Decision**
+Read saved validation/test JSONs if present. Missing validation results run the full documented grid; missing test results call final_test_run once. A saved test result with different selected parameters raises an error requiring investigation. Plotting always uses stored validation rows and the same selected parameters.
+
+**Why**
+Unconditional test calls during Restart & Run All would repeat test evaluation. A missing-file guard preserves the audit trail and makes figures reproducible. This does not alter the shared harness or hide repeats: any explicit rerun still needs a decision entry and remains in the append-only log.
+
+**Files touched**
+- `notebooks/03_linear_knn.ipynb` — orchestration and saved-result guards.

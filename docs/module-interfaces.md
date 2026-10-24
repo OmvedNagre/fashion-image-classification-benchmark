@@ -10,7 +10,7 @@ Conventions:
 - Errors raise `ValueError` (bad argument) or `RuntimeError` (missing/corrupt data), with a message saying how to fix it.
 
 ## `src/config.py` — constants only
-`SEED = 42`, `VAL_SIZE = 6000`, `SVM_TUNE_SUBSET = 10000`, `N_JOBS = 4`, `CLASS_NAMES` (10 str),
+`SEED = 42`, `VAL_SIZE = 6000`, `SVM_TUNE_SUBSET = 10000`, `N_JOBS = 4`, `LOGREG_MAX_ITER = 5000`, `CLASS_NAMES` (10 str),
 `HOG_PARAMS` (dict), `RAW_URL_BASE`, `RAW_FILES` (filename → MD5), and paths `ROOT`, `DATA_RAW`, `SPLITS_DIR`,
 `VAL_INDICES_PATH`, `FEATURES_DIR`, `METRICS_DIR`, `FIGURES_DIR`, `RESULTS_DIR`, `TEST_LOG_PATH`, `HOG_SWEEP_PATH`.
 Modules read these at call time (`config.X` inside functions), so a scratch check can point them at a temp folder.
@@ -47,7 +47,7 @@ Every function returns a **new, unfitted** `sklearn.pipeline.Pipeline`. Scaling 
 | Function | Hyperparameters | Pipeline steps |
 |---|---|---|
 | `make_dummy()` | — | `DummyClassifier(strategy="most_frequent")` |
-| `make_logreg(C)` | C | `StandardScaler` → `LogisticRegression(max_iter=1000, random_state=SEED)` |
+| `make_logreg(C)` | C | `StandardScaler` → `LogisticRegression(max_iter=LOGREG_MAX_ITER, random_state=SEED)` |
 | `make_knn(n_neighbors, weights, metric)` | k, weights, metric | `StandardScaler` → `KNeighborsClassifier(n_jobs=N_JOBS)` |
 | `make_rf(n_estimators, max_depth, max_features)` | as named | `RandomForestClassifier(random_state=SEED, n_jobs=N_JOBS)` (no scaler, as trees don't need one) |
 | `make_linear_svm(C)` | C | `StandardScaler` → `LinearSVC(random_state=SEED)` |
