@@ -38,6 +38,16 @@ python -c "from src.data import download_raw; download_raw()"
 This downloads the 4 official files (~30 MB) into `data/raw/` and checks each one against Zalando's published MD5 checksum.
 The GitHub server can be slow, so this may take ~5 minutes. Re-running skips files that are already there and verified.
 
+### The fixed split
+`src.data.load_splits()` returns **54,000 train / 6,000 validation / 10,000 test** images (float32, 0–1).
+The validation images are a stratified sample (600 per class, seed 42) of the official training set, saved in
+`data/splits/val_indices.npy` so everyone uses the identical split. Check your copy:
+```bash
+md5 -q data/splits/val_indices.npy        # macOS  (Linux/Colab: md5sum data/splits/val_indices.npy)
+# expected: 54ff6b78b27109cdfc3ebe7204040a07
+```
+The official test set is only used once per model, for the final numbers (see `AGENTS.md` §4).
+
 ## Run order
 <!-- Completed in phase v1/05. -->
 Run the notebooks in order: `01_data_eda` → `02_features` → `03_linear_knn` → `04_rf_svm` → `05_results_analysis`.

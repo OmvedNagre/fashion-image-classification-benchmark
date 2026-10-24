@@ -7,6 +7,7 @@ import hashlib
 import urllib.request
 
 import numpy as np
+from sklearn.model_selection import train_test_split
 
 from src import config
 
@@ -137,3 +138,70 @@ def run_sanity_checks() -> dict:
     for key, value in report.items():
         print(f"{key:28s} {value}")
     return report
+
+
+# --- Fixed train/val split (D-003) ---------------------------------------------
+
+def _make_val_indices(y_train_full: np.ndarray) -> np.ndarray:
+    """Pick VAL_SIZE indices from the 60k train set, stratified by class, with the fixed seed."""
+    all_indices = np.arange(len(y_train_full))
+    _, val_indices = train_test_split(
+        all_indices, test_size=config.VAL_SIZE, stratify=y_train_full, random_state=config.SEED
+    )
+    return np.sort(val_indices).astype(np.int64)
+
+
+def _check_val_indices(val_indices: np.ndarray, y_train_full: np.ndarray) -> None:
+    """Raise if the saved split is not exactly 6,000 unique, in-range indices with 600 per class."""
+    per_class = config.VAL_SIZE // config.NUM_CLASSES
+    counts = np.bincount(y_train_full[val_indices], minlength=config.NUM_CLASSES)
+    if (
+        len(val_indices) != config.VAL_SIZE
+        or len(np.unique(val_indices)) != config.VAL_SIZE
+        or val_indices.min() < 0
+        or val_indices.max() >= len(y_train_full)
+        or set(counts.tolist()) != {per_class}
+    ):
+        raise RuntimeError(
+            f"{config.VAL_INDICES_PATH} is not a valid split. Restore it from git: "
+            "git checkout -- data/splits/val_indices.npy"
+        )
+
+
+def _load_or_create_val_indices(y_train_full: np.ndarray) -> np.ndarray:
+    """Load the committed split file; create it only if it doesn't exist yet (first run of phase 01)."""
+    path = config.VAL_INDICES_PATH
+    if path.exists():
+        val_indices = np.load(path)
+    else:
+        val_indices = _make_val_indices(y_train_full)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        np.save(path, val_indices)
+        print(f"created {path.relative_to(config.ROOT)}")
+    _check_val_indices(val_indices, y_train_full)
+    print(f"val_indices.npy MD5: {_md5(path)}")
+    return val_indices
+
+
+def _to_float(images: np.ndarray) -> np.ndarray:
+    """uint8 0–255 -> float32 0–1 (returns a new array)."""
+    return images.astype(np.float32) / 255.0
+
+
+def load_splits() -> dict:
+    """Return the fixed splits: train 54k, val 6k (from the official train set) and the official 10k test.
+
+    Keys: X_train, y_train, X_val, y_val, X_test, y_test. Images are float32 in [0, 1], shape (N, 28, 28).
+    """
+    X_train_full, y_train_full, X_test, y_test = load_raw()
+    val_indices = _load_or_create_val_indices(y_train_full)
+    is_val = np.zeros(len(y_train_full), dtype=bool)
+    is_val[val_indices] = True
+    return {
+        "X_train": _to_float(X_train_full[~is_val]),
+        "y_train": y_train_full[~is_val],
+        "X_val": _to_float(X_train_full[is_val]),
+        "y_val": y_train_full[is_val],
+        "X_test": _to_float(X_test),
+        "y_test": y_test,
+    }

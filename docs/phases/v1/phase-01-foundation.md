@@ -56,7 +56,7 @@ None. This is the first phase. The repo contains only the docs.
 - [x] 01.2 — `src/config.py` + `src/utils.py` → `feat(core): add config constants and utils`
 - [x] 01.3 — `download_raw()` with MD5 check + `load_raw()` IDX parser → `feat(data): download and verify Fashion-MNIST IDX files`
 - [x] 01.4 — `run_sanity_checks()` → `feat(data): add dataset sanity checks`
-- [ ] 01.5 — Stratified split, `load_splits()`, commit `val_indices.npy`, record its MD5 in the README → `feat(data): add fixed stratified train/val split`
+- [x] 01.5 — Stratified split, `load_splits()`, commit `val_indices.npy`, record its MD5 in the README → `feat(data): add fixed stratified train/val split`
 - [ ] 01.6 — `01_data_eda.ipynb` + EDA figures + hard-classes paragraph → `feat(eda): add exploratory data analysis notebook`
 - [ ] 01.7 — Update docs touched by this phase (decisions, progress) → `docs(phase-01): update docs and decisions`
 
