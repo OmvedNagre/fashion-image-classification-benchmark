@@ -61,10 +61,10 @@ From v1/01 (merged 2026-10-24):
 - [x] 02.3 — `src/evaluate.py` → `feat(eval): add shared evaluation harness`
 - [x] 02.4 — `src/experiment.py` (`tune_on_val`, `final_test_run`, `cross_validate_best`, test log) → `feat(eval): add tuning, final test run and CV helpers`
 - [x] 02.5 — `02_features.ipynb`: sweep table, dimension/time discussion, HOG visualisation, why scaling matters per model → `feat(features): add features notebook`
-- [ ] 02.6 — Update docs touched by this phase → `docs(phase-02): update docs and decisions`
+- [x] 02.6 — Update docs touched by this phase → `docs(phase-02): update docs and decisions`
 
 ## Done criteria
-- [ ] Cached features exist for pixels and the chosen HOG config, for all 4 splits
+- [ ] Cached features exist for pixels and the chosen HOG config for train / val / trainval (test is built on demand by `final_test_run()`, D-019)
 - [ ] `hog_sweep.csv` has 12 rows. The chosen config is justified in `decisions.md`
 - [ ] The harness is verified end to end on a tiny model **against a temporary results folder**, so the real
       `results/metrics/` and `test_log.csv` stay empty until phase 03

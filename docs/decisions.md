@@ -31,6 +31,7 @@ Rules:
 | D-016 | 2026-10-24 | v1/02 | HOG sweep proxy = SGD linear SVM with a fixed 30-epoch budget | Active |
 | D-017 | 2026-10-24 | v1/02 | Final HOG config: orientations 12, cells 4×4, blocks 2×2 (1,728-d) | Active |
 | D-018 | 2026-10-24 | v1/02 | Harness details: best = strict max val acc, sequential CV, test-log warning | Active |
+| D-019 | 2026-10-24 | v1/02 | Test features are only built inside final_test_run() | Active |
 
 ---
 
@@ -809,3 +810,30 @@ The same check confirmed that the scaler's learned mean equals the training rows
 
 **Revisit if**
 Phase 2's CNN needs a different training loop. It should still finish by calling `evaluate()` and logging the test use.
+
+---
+
+### D-019 — Test features are only built inside final_test_run()
+- **Date:** 2026-10-24
+- **Phase:** v1/02 — Features & Evaluation Harness
+- **Status:** Active
+- **Type:** edge-case
+
+**Context**
+The phase 02 plan said to cache features "for all 4 splits". But AGENTS.md rule 1 says nothing may call
+`get_features(..., "test")` outside `final_test_run()`.
+
+**Decision**
+Notebook 02 caches train / val / trainval only. The test cache is created automatically the first time
+`final_test_run()` asks for it (pixels: instant; HOG: ~3 s).
+
+**Why**
+HOG and flattening are stateless, so building test features early would not leak anything. But keeping the rule
+**absolute** ("test is read in exactly one function") makes it trivial to audit, both for the professor and for
+reviewers of teammates' PRs. The cost is a few seconds in phase 03.
+
+**Files touched**
+- `notebooks/02_features.ipynb`, phase-02 done criteria
+
+**Revisit if**
+Never for v1.

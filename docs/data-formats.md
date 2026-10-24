@@ -45,7 +45,7 @@ IDX format: gzip file, then a big-endian header (16 bytes for images, 8 bytes fo
 | File pattern | dtype | Shape |
 |---|---|---|
 | `pixels_{split}.npy` | float32 | (N, 784). Unscaled values in [0,1]. Scaling happens inside model Pipelines (D-004) |
-| `hog_o{orientations}_p{ppc}_c{cpb}_{split}.npy` | float32 | (N, d), where d depends on the params (e.g. o9/p4/c2 → 1296) |
+| `hog_o{orientations}_p{ppc}_c{cpb}_{split}.npy` | float32 | (N, d), where d depends on the params. Chosen config o12/p4/c2 → **1,728** (D-017) |
 
 Rows are in the same order as the matching `y_{split}`. `trainval` rows are train rows followed by val rows.
 
