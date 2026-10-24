@@ -1,0 +1,233 @@
+{
+ "experiment": "knn_pixels",
+ "model": "knn",
+ "features": "pixels",
+ "split": "val",
+ "train_subset": null,
+ "grid": {
+  "n_neighbors": [
+   1,
+   3,
+   5,
+   7,
+   9
+  ],
+  "weights": [
+   "uniform",
+   "distance"
+  ],
+  "metric": [
+   "euclidean",
+   "manhattan"
+  ]
+ },
+ "rows": [
+  {
+   "params": {
+    "metric": "euclidean",
+    "n_neighbors": 1,
+    "weights": "uniform"
+   },
+   "fit_s": 0.36,
+   "val_acc": 0.8573,
+   "val_macro_f1": 0.8584
+  },
+  {
+   "params": {
+    "metric": "euclidean",
+    "n_neighbors": 1,
+    "weights": "distance"
+   },
+   "fit_s": 0.22,
+   "val_acc": 0.8573,
+   "val_macro_f1": 0.8584
+  },
+  {
+   "params": {
+    "metric": "euclidean",
+    "n_neighbors": 3,
+    "weights": "uniform"
+   },
+   "fit_s": 0.16,
+   "val_acc": 0.861,
+   "val_macro_f1": 0.861
+  },
+  {
+   "params": {
+    "metric": "euclidean",
+    "n_neighbors": 3,
+    "weights": "distance"
+   },
+   "fit_s": 0.18,
+   "val_acc": 0.8647,
+   "val_macro_f1": 0.8651
+  },
+  {
+   "params": {
+    "metric": "euclidean",
+    "n_neighbors": 5,
+    "weights": "uniform"
+   },
+   "fit_s": 0.28,
+   "val_acc": 0.8633,
+   "val_macro_f1": 0.8632
+  },
+  {
+   "params": {
+    "metric": "euclidean",
+    "n_neighbors": 5,
+    "weights": "distance"
+   },
+   "fit_s": 0.23,
+   "val_acc": 0.8667,
+   "val_macro_f1": 0.8671
+  },
+  {
+   "params": {
+    "metric": "euclidean",
+    "n_neighbors": 7,
+    "weights": "uniform"
+   },
+   "fit_s": 0.59,
+   "val_acc": 0.8668,
+   "val_macro_f1": 0.8668
+  },
+  {
+   "params": {
+    "metric": "euclidean",
+    "n_neighbors": 7,
+    "weights": "distance"
+   },
+   "fit_s": 0.24,
+   "val_acc": 0.8685,
+   "val_macro_f1": 0.8688
+  },
+  {
+   "params": {
+    "metric": "euclidean",
+    "n_neighbors": 9,
+    "weights": "uniform"
+   },
+   "fit_s": 0.27,
+   "val_acc": 0.8628,
+   "val_macro_f1": 0.8628
+  },
+  {
+   "params": {
+    "metric": "euclidean",
+    "n_neighbors": 9,
+    "weights": "distance"
+   },
+   "fit_s": 0.18,
+   "val_acc": 0.8658,
+   "val_macro_f1": 0.8661
+  },
+  {
+   "params": {
+    "metric": "manhattan",
+    "n_neighbors": 1,
+    "weights": "uniform"
+   },
+   "fit_s": 0.29,
+   "val_acc": 0.8643,
+   "val_macro_f1": 0.8653
+  },
+  {
+   "params": {
+    "metric": "manhattan",
+    "n_neighbors": 1,
+    "weights": "distance"
+   },
+   "fit_s": 0.45,
+   "val_acc": 0.8643,
+   "val_macro_f1": 0.8653
+  },
+  {
+   "params": {
+    "metric": "manhattan",
+    "n_neighbors": 3,
+    "weights": "uniform"
+   },
+   "fit_s": 0.66,
+   "val_acc": 0.872,
+   "val_macro_f1": 0.8719
+  },
+  {
+   "params": {
+    "metric": "manhattan",
+    "n_neighbors": 3,
+    "weights": "distance"
+   },
+   "fit_s": 1.35,
+   "val_acc": 0.8747,
+   "val_macro_f1": 0.8748
+  },
+  {
+   "params": {
+    "metric": "manhattan",
+    "n_neighbors": 5,
+    "weights": "uniform"
+   },
+   "fit_s": 0.44,
+   "val_acc": 0.8723,
+   "val_macro_f1": 0.8717
+  },
+  {
+   "params": {
+    "metric": "manhattan",
+    "n_neighbors": 5,
+    "weights": "distance"
+   },
+   "fit_s": 0.44,
+   "val_acc": 0.8733,
+   "val_macro_f1": 0.8734
+  },
+  {
+   "params": {
+    "metric": "manhattan",
+    "n_neighbors": 7,
+    "weights": "uniform"
+   },
+   "fit_s": 0.35,
+   "val_acc": 0.8702,
+   "val_macro_f1": 0.8699
+  },
+  {
+   "params": {
+    "metric": "manhattan",
+    "n_neighbors": 7,
+    "weights": "distance"
+   },
+   "fit_s": 0.35,
+   "val_acc": 0.8727,
+   "val_macro_f1": 0.8727
+  },
+  {
+   "params": {
+    "metric": "manhattan",
+    "n_neighbors": 9,
+    "weights": "uniform"
+   },
+   "fit_s": 0.31,
+   "val_acc": 0.8642,
+   "val_macro_f1": 0.8635
+  },
+  {
+   "params": {
+    "metric": "manhattan",
+    "n_neighbors": 9,
+    "weights": "distance"
+   },
+   "fit_s": 0.36,
+   "val_acc": 0.8682,
+   "val_macro_f1": 0.868
+  }
+ ],
+ "best_params": {
+  "metric": "manhattan",
+  "n_neighbors": 3,
+  "weights": "distance"
+ },
+ "best_val_acc": 0.8747,
+ "timestamp": "2026-10-24T22:16:34"
+}

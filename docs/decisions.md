@@ -868,7 +868,7 @@ An unfinished optimisation can distort the validation curve. Raising the budget 
 Notebook 03 must run top-to-bottom with outputs, while test_log.csv must contain exactly one evaluation per experiment.
 
 **Decision**
-Read saved validation/test JSONs if present. Missing validation results run the full documented grid; missing test results call final_test_run once. A saved test result with different selected parameters raises an error requiring investigation. Plotting always uses stored validation rows and the same selected parameters.
+Read saved validation/test JSONs if present. Missing validation results run the full documented grid; missing test results call final_test_run once, unless the audit log already records that experiment (recover its saved metrics first). A saved test result with different selected parameters raises an error requiring investigation. Plotting always uses stored validation rows and the same selected parameters.
 
 **Why**
 Unconditional test calls during Restart & Run All would repeat test evaluation. A missing-file guard preserves the audit trail and makes figures reproducible. This does not alter the shared harness or hide repeats: any explicit rerun still needs a decision entry and remains in the append-only log.
