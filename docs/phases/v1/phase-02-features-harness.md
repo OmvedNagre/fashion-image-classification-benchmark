@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Owner | Rajdeep |
-| Status | review |
+| Status | done |
 | Branch | `phase/v1-02-features-harness` |
 | Depends on | Phase v1/01 |
 | PRD features | F-05, F-06, F-07, F-08, S-02 |

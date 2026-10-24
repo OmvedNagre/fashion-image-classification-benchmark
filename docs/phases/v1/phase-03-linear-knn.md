@@ -16,7 +16,19 @@ By the end of this phase, the dummy baseline, Logistic Regression and kNN are tu
 both pixels and HOG (6 test JSONs). Validation curves and LR weight maps explain how these models behave.
 
 ## Previous phase summary
-<!-- Filled by the owner at phase start (AGENTS.md §6.1): copy the essentials of phase 02's "Phase summary" here. -->
+From v1/02 (merged 2026-10-24):
+- **Features:** `features.get_features(kind, split)` with `kind` ∈ {pixels, hog}, `split` ∈ {train, val, trainval}
+  (test only via `final_test_run`). Pixels = 784-d in [0,1], unscaled. HOG = **o12_p4_c2, 1,728-d** (D-017, proxy val acc 0.8818).
+  Caches live in `features/` (gitignored) and are rebuilt automatically if missing (~15 s for HOG).
+- **Harness (`src/experiment.py`):** build each model as a factory returning an *unfitted* Pipeline (put `StandardScaler`
+  inside for LR/kNN), then `best, table = tune_on_val(name, make_fn, GRID, kind)` → `final_test_run(name, make_fn, best, kind)`.
+  `tune_on_val` writes `{name}_{kind}_val.json` and never reads test. `final_test_run` refits on 60k, calls `evaluate()`,
+  writes `{name}_{kind}_test.json` and appends to `results/test_log.csv`, warning on any repeat (D-018).
+- **Run `final_test_run` once per experiment, at the end.** `results/metrics/` and `test_log.csv` are empty right now:
+  this phase makes the first test-set contact.
+- Best = strict max val accuracy. If the top two are within 0.3 points, you may pick the simpler one by hand and log it (D-018).
+- `utils.save_fig(fig, "linear_...")` for figures. Copy notebook 01's first cell for imports.
+- EDA expects Shirt/Coat/Pullover/T-shirt to be the hard classes; LR pixels sanity range ≈ 84%, kNN ≈ 85–86% (prd.md §8).
 
 ## In scope — exact features
 1. **Model factories** — `src/models_linear.py`

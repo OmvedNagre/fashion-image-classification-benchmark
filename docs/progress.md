@@ -1,7 +1,7 @@
 # Progress
 
-**Current phase:** v1/02 — Features & Evaluation Harness (`review`)
-**Branch:** `phase/v1-02-features-harness`
+**Current phase:** v1/03 — Dummy, Logistic Regression & kNN (`not-started`)
+**Branch:** —
 **Profile:** lean
 
 ## Phases
@@ -9,7 +9,7 @@
 | # | Phase | Owner | Status | Branch | Started | Closed |
 |---|---|---|---|---|---|---|
 | 01 | [Foundation & Data](phases/v1/phase-01-foundation.md) | Rajdeep | done | phase/v1-01-foundation | 2026-10-24 | 2026-10-24 |
-| 02 | [Features & Evaluation Harness](phases/v1/phase-02-features-harness.md) | Rajdeep | review | phase/v1-02-features-harness | 2026-10-24 | |
+| 02 | [Features & Evaluation Harness](phases/v1/phase-02-features-harness.md) | Rajdeep | done | phase/v1-02-features-harness | 2026-10-24 | 2026-10-24 |
 | 03 | [Dummy, Logistic Regression & kNN](phases/v1/phase-03-linear-knn.md) | TBD | not-started | phase/v1-03-linear-knn | | |
 | 04 | [Random Forest & SVM](phases/v1/phase-04-rf-svm.md) | TBD | not-started | phase/v1-04-rf-svm | | |
 | 05 | [Results, Error Analysis & README](phases/v1/phase-05-results-analysis.md) | TBD | not-started | phase/v1-05-results-analysis | | |
@@ -24,7 +24,7 @@ each phase starts. Full workflow: [`AGENTS.md`](../AGENTS.md) §6.
 <!-- Newest first. 2–4 lines per session. Keep only the last ~10 sessions; older ones are in git history. -->
 ### 2026-10-24 (phase v1/02)
 - Done: all 6 tasks. Pixel + HOG features with cache; HOG sweep → o12_p4_c2 (val 0.8818); evaluate/experiment harness verified (test never touched in tuning); notebook 02. Fresh clone reproduces 01–02.
-- Next: lead approval → merge; then v1/03 (Dummy, LR, kNN).
+- Next: approved and merged to `main` (2026-10-24). v1/03 (Dummy, LR, kNN) is next.
 - Blockers: none. Note: exact LinearSVC is slow on HOG (relevant for phase 04).
 
 ### 2026-10-24 (phase v1/01)
