@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Owner | Rajdeep |
-| Status | review |
+| Status | done |
 | Branch | `phase/v1-01-foundation` |
 | Depends on | — (first phase) |
 | PRD features | F-01, F-02, F-03, F-04 |
