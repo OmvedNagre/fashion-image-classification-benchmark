@@ -1,7 +1,7 @@
 # AGENTS.md — How to work on this repo
 
 This file is for **every contributor and every coding agent** (Claude Code, Antigravity, Cursor, Copilot, Codex, or
-no AI at all). Read it fully before writing any code. If you are an AI agent, treat every rule here as an instruction.
+no AI at all). Humans: [`CONTRIBUTING.md`](CONTRIBUTING.md) has the same workflow as a click-by-click guide with troubleshooting. Read it fully before writing any code. If you are an AI agent, treat every rule here as an instruction.
 
 ---
 

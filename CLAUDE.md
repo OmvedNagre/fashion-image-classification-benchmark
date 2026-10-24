@@ -32,6 +32,7 @@ data/splits/  val_indices.npy (committed); data/raw/, features/ are gitignored
 results/      metrics/*.json, figures/*.png, summary.csv, test_log.csv (committed, code-generated)
 docs/         prd, architecture, system-design, data-formats, module-interfaces, decisions, progress, phases/v1/
 AGENTS.md     workflow + rules for every contributor and AI tool
+CONTRIBUTING.md  step-by-step guide + troubleshooting for team members
 .github/      pull_request_template.md
 ```
 
