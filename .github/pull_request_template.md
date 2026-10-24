@@ -42,11 +42,14 @@ Anything outside the sanity ranges in `docs/prd.md` §8? <!-- yes/no; if yes, ex
 - [ ] Figures saved via `utils.save_fig` with names following `data-formats.md` §12
 - [ ] No new dependencies; no tests/CI/Docker committed; nothing from `.scratch/`, `data/raw/`, `features/` staged
 - [ ] Every Done criterion in the phase file is met
+- [ ] Every new `decisions.md` entry uses the full template (all headings) and has an Index row
 - [ ] Phase file updated: tasks ticked, **Phase summary** filled
 - [ ] `docs/progress.md` updated (status `review`, session log entry)
 
 ## Decisions logged
-<!-- List new entries in docs/decisions.md, e.g. "D-013 — Chose HOG o9/p4/c2 because ..." or "none". -->
+<!-- List new entries in docs/decisions.md, e.g. "D-026 — Tuned RBF SVM on a 10k subset because ..." or "none".
+     Every entry must use the FULL template (AGENTS.md §6.3): Context, Decision, Alternatives considered, Why,
+     How it works, Files touched, Concepts worth learning, Revisit if, plus a row in the Index table. -->
 -
 
 ## Deviations from the docs

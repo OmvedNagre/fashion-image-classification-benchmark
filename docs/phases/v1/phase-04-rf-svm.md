@@ -16,7 +16,18 @@ By the end of this phase, Random Forest, LinearSVC and RBF SVM are tuned on val 
 sets. All 8 core experiments (plus the dummy and LinearSVC) are finished.
 
 ## Previous phase summary
-<!-- Filled by the owner at phase start (AGENTS.md §6.1): copy the essentials of phase 03's "Phase summary" here. -->
+From v1/03 (PR #1 by Rajat, merged 2026-10-24):
+- **Results so far (test):** Dummy 10%; LR pixels 84.72% / HOG 88.86% (C=0.01); kNN pixels 86.11% (k=3, distance, Manhattan) /
+  HOG 86.31% (k=3, distance, Euclidean). HOG helps LR a lot (+4.1 pts), kNN barely (+0.2). Shirt recall is lowest everywhere (57–69%).
+- **Pattern to copy:** factories in `src/models_tree_kernel.py` return *unfitted* Pipelines + grid constants (see
+  `models_linear.py`). Model files must not load data, train or plot (D-025). Plots go in the notebook.
+- **Notebook pattern (D-021):** reuse saved `_val.json`/`_test.json` on restart; call `final_test_run` only when the test JSON
+  is missing and the experiment isn't already in `test_log.csv`. Copy the guard cells from notebook 03.
+- **Finish all tuning for a model before its `final_test_run`** and never run them in parallel (AGENTS.md §4.6, D-023).
+- **Timing:** LR timings are flagged `timing_comparable=false` (D-024). Make sure nothing else runs during your final
+  fits/predicts so RF/SVM timings stay clean. RBF SVM tunes on `train_subset=config.SVM_TUNE_SUBSET` (10k).
+- **Exact LinearSVC is very slow on 54k × 1,728 HOG** (phase 02 note). Budget time, use `dual=False`, or log a documented subset.
+- **Log every decision in the full template** (AGENTS.md §6.3). Next free number: **D-026**.
 
 ## In scope — exact features
 1. **Model factories** — `src/models_tree_kernel.py`

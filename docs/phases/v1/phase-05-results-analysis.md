@@ -26,6 +26,7 @@ This is v1 (capstone Phase 1) code-complete.
 2. **Comparison plots** (F-12)
    - Acceptance: `results_pixels_vs_hog.png` (RQ2), `results_acc_vs_time.png` (RQ3), `results_recall_heatmap.png` (RQ4).
    - Exclude missing times from speed plots/rankings and state which experiments were omitted. Do not treat missing timings as zero or discard their accuracy results.
+   - `dummy_*` timings come from a different environment (`env.cpu` = `arm64`, likely a sandbox). They're near zero anyway; footnote them.
 3. **Stability check** (F-11)
    - Acceptance: `pick_best_experiment()` picks by **val** accuracy. `cross_validate_best()` writes `_cv.json` with mean ± std.
      If it's an SVM, it uses a 10k stratified subset, documented.
@@ -34,6 +35,8 @@ This is v1 (capstone Phase 1) code-complete.
      each pair, and the agreement between the two best models (same mistakes?). A written explanation of why handcrafted
      features fail on shirt / T-shirt / pullover / coat, linked to the phase 01 EDA findings.
 5. **Write-up of RQ1–RQ4 + Phase 2 motivation**
+   - Limitation to mention: LR's validation accuracy rises monotonically as C shrinks and the best C (0.01) is the
+     smallest value in the planned grid, so the true optimum may be lower (D-020). Not re-tuned, to avoid another test run.
    - Acceptance: `05_results_analysis.ipynb` ends with one short answer per RQ and a "why a CNN next" paragraph.
 6. **README** (F-14)
    - Acceptance: setup (conda + VS Code, Colab fallback), run order (notebooks 01→05 with rough runtimes), results table

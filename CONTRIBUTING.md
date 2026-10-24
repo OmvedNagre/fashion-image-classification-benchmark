@@ -90,7 +90,9 @@ Add an entry when you:
 - do anything differently from your phase file.
 
 Copy the template at the top of `decisions.md`, give it the next number (`D-0NN`), add a row to the Index table, and
-explain it so a classmate could learn from it: what, why, what you rejected, how it works.
+explain it so a classmate could learn from it. **Fill every heading** (Context, Decision, Alternatives considered, Why,
+How it works, Files touched, Concepts worth learning, Revisit if). The exact format is in `AGENTS.md` §6.3. Entries with
+missing sections get sent back in review. Tell your AI assistant to follow §6.3 too.
 
 ## 6. Finish your phase
 1. Go through **Done criteria** in your phase file. Every box must be true. Run every step in **How to verify**.
