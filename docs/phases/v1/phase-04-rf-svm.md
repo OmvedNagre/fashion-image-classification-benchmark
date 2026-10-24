@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Owner | _TBD_ (set when the phase starts) |
-| Status | not-started |
+| Owner | Tanmay Singh |
+| Status | in-progress |
 | Branch | `phase/v1-04-rf-svm` |
 | Depends on | Phase v1/03 |
 | PRD features | F-10, S-01 |
