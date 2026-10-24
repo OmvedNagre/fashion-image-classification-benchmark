@@ -56,7 +56,7 @@ From v1/01 (merged 2026-10-24):
 - `decisions.md` → D-004, D-005, D-007, D-008, D-011
 
 ## Tasks
-- [ ] 02.1 — `extract_pixels`, `extract_hog`, `get_features`, `get_labels` with disk cache → `feat(features): add pixel and HOG extractors with caching`
+- [x] 02.1 — `extract_pixels`, `extract_hog`, `get_features`, `get_labels` with disk cache → `feat(features): add pixel and HOG extractors with caching`
 - [ ] 02.2 — `run_hog_sweep()`, run it, set `HOG_PARAMS`, log the decision → `feat(features): add HOG parameter sweep and select config`
 - [ ] 02.3 — `src/evaluate.py` → `feat(eval): add shared evaluation harness`
 - [ ] 02.4 — `src/experiment.py` (`tune_on_val`, `final_test_run`, `cross_validate_best`, test log) → `feat(eval): add tuning, final test run and CV helpers`

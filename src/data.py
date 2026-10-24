@@ -168,7 +168,7 @@ def _check_val_indices(val_indices: np.ndarray, y_train_full: np.ndarray) -> Non
         )
 
 
-def _load_or_create_val_indices(y_train_full: np.ndarray) -> np.ndarray:
+def _load_or_create_val_indices(y_train_full: np.ndarray, verbose: bool = True) -> np.ndarray:
     """Load the committed split file; create it only if it doesn't exist yet (first run of phase 01)."""
     path = config.VAL_INDICES_PATH
     if path.exists():
@@ -179,7 +179,8 @@ def _load_or_create_val_indices(y_train_full: np.ndarray) -> np.ndarray:
         np.save(path, val_indices)
         print(f"created {path.relative_to(config.ROOT)}")
     _check_val_indices(val_indices, y_train_full)
-    print(f"val_indices.npy MD5: {_md5(path)}")
+    if verbose:
+        print(f"val_indices.npy MD5: {_md5(path)}")
     return val_indices
 
 
@@ -188,13 +189,14 @@ def _to_float(images: np.ndarray) -> np.ndarray:
     return images.astype(np.float32) / 255.0
 
 
-def load_splits() -> dict:
+def load_splits(verbose: bool = True) -> dict:
     """Return the fixed splits: train 54k, val 6k (from the official train set) and the official 10k test.
 
     Keys: X_train, y_train, X_val, y_val, X_test, y_test. Images are float32 in [0, 1], shape (N, 28, 28).
+    verbose=False skips printing the split file's MD5 (used by features.py, which calls this often).
     """
     X_train_full, y_train_full, X_test, y_test = load_raw()
-    val_indices = _load_or_create_val_indices(y_train_full)
+    val_indices = _load_or_create_val_indices(y_train_full, verbose)
     is_val = np.zeros(len(y_train_full), dtype=bool)
     is_val[val_indices] = True
     return {

@@ -42,5 +42,7 @@ FEATURES_DIR = ROOT / "features"
 RESULTS_DIR = ROOT / "results"
 METRICS_DIR = RESULTS_DIR / "metrics"
 FIGURES_DIR = RESULTS_DIR / "figures"
+TEST_LOG_PATH = RESULTS_DIR / "test_log.csv"
+HOG_SWEEP_PATH = RESULTS_DIR / "hog_sweep.csv"
 
 FIGURE_DPI = 300

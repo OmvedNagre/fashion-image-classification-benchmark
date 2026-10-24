@@ -12,7 +12,8 @@ Conventions:
 ## `src/config.py` — constants only
 `SEED = 42`, `VAL_SIZE = 6000`, `SVM_TUNE_SUBSET = 10000`, `N_JOBS = 4`, `CLASS_NAMES` (10 str),
 `HOG_PARAMS` (dict), `RAW_URL_BASE`, `RAW_FILES` (filename → MD5), and paths `ROOT`, `DATA_RAW`, `SPLITS_DIR`,
-`FEATURES_DIR`, `METRICS_DIR`, `FIGURES_DIR`, `RESULTS_DIR`.
+`VAL_INDICES_PATH`, `FEATURES_DIR`, `METRICS_DIR`, `FIGURES_DIR`, `RESULTS_DIR`, `TEST_LOG_PATH`, `HOG_SWEEP_PATH`.
+Modules read these at call time (`config.X` inside functions), so a scratch check can point them at a temp folder.
 
 ## `src/utils.py`
 | Function | Takes | Returns | Notes |
@@ -27,7 +28,7 @@ Conventions:
 | `download_raw()` | — | None | `RuntimeError` on a network failure or MD5 mismatch (the bad file is deleted) |
 | `load_raw()` | — | `(X_train_full, y_train_full, X_test, y_test)`, uint8 images (N,28,28), int64 labels | `RuntimeError` if the files are missing (tells you to run `download_raw()`) |
 | `run_sanity_checks()` | — | dict with keys `train_shape`, `test_shape`, `image_dtype`, `label_dtype`, `pixel_range`, `label_range`, `nan_count`, `train_class_counts`, `test_class_counts`, `duplicates_within_train`, `duplicates_within_test`, `test_images_also_in_train`. Also prints them | `RuntimeError` if shapes, label range, NaNs or class counts are wrong |
-| `load_splits()` | — | dict with keys from `data-formats.md` §4 | Creates and saves `val_indices.npy` on the first call. Prints its MD5. `RuntimeError` if the saved file isn't a valid 6,000-index, 600-per-class split |
+| `load_splits(verbose=True)` | bool | dict with keys from `data-formats.md` §4 | Creates and saves `val_indices.npy` on the first call. Prints its MD5 unless `verbose=False`. `RuntimeError` if the saved file isn't a valid 6,000-index, 600-per-class split |
 
 ## `src/features.py`
 | Function | Takes | Returns | Notes |
@@ -36,6 +37,7 @@ Conventions:
 | `extract_hog(X, orientations, pixels_per_cell, cells_per_block)` | (N,28,28) float32 + params | (N,d) float32 | `skimage.feature.hog`, L2-Hys block norm |
 | `get_features(kind, split)` | `"pixels"\|"hog"`, `"train"\|"val"\|"trainval"\|"test"` | (N,d) float32 | Loads from cache or builds and saves. `ValueError` for an unknown kind/split |
 | `get_labels(split)` | split name | (N,) int64 | Same row order as `get_features` |
+| `hog_tag(params)` | HOG params dict | str, e.g. `"o9_p4_c2"` | Used in cache filenames and the sweep table |
 | `run_hog_sweep(grid)` | dict of lists | `pandas.DataFrame` (columns in `data-formats.md` §6) | Uses train/val only. Writes `results/hog_sweep.csv` |
 
 ## `src/models_linear.py` and `src/models_tree_kernel.py`
