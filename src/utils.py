@@ -1,4 +1,5 @@
-"""Small helpers shared by every phase: seeding, timing and saving figures."""
+"""Small helpers shared by every phase: seeding, timing, saving figures and JSON."""
+import json
 import random
 import time
 
@@ -45,3 +46,20 @@ def save_fig(fig, name: str):
     fig.savefig(path, dpi=config.FIGURE_DPI, bbox_inches="tight")
     print(f"saved {path.relative_to(config.ROOT)}")
     return path
+
+
+def _to_plain(value):
+    """json.dump fallback: turn NumPy numbers/arrays into plain Python types."""
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    raise TypeError(f"Cannot save {type(value).__name__} to JSON")
+
+
+def save_json(obj: dict, path) -> None:
+    """Write a dict to a JSON file (creating the folder), converting NumPy types."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(obj, f, indent=1, default=_to_plain)
+    print(f"saved {path.relative_to(config.ROOT)}")

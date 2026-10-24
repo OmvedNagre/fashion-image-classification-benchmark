@@ -21,6 +21,7 @@ Modules read these at call time (`config.X` inside functions), so a scratch chec
 | `set_seed(seed=SEED)` | int | None | Seeds `random` and `numpy` |
 | `Timer(label)` | str | context manager with `.seconds` | `with Timer("fit") as t: ...` prints `fit: 12.3s` |
 | `save_fig(fig, name)` | matplotlib Figure, filename without extension | `Path` | Saves `FIGURES_DIR/{name}.png` at 300 dpi, creating the folder if needed |
+| `save_json(obj, path)` | dict, `Path` | None | Writes indented JSON, converting NumPy numbers/arrays; creates the folder |
 
 ## `src/data.py`
 | Function | Takes | Returns | Errors |
@@ -66,6 +67,7 @@ Default tuning grids live next to these functions as constants (e.g. `KNN_GRID`)
 | `evaluate(model, X_test, y_test, name, kind, best_params, train_time_s)` | fitted model + test data + metadata | metrics dict | Times `predict` (best of 3), computes all metrics, writes `{name}_{kind}_test.json`. Usable by any model with `.predict()`, including the Phase 2 CNN wrapper |
 | `model_size_bytes(model)` | fitted model | int | `len(pickle.dumps(model))` |
 | `model_size_detail(model)` | fitted model | dict `{type, value}` | Support vectors / tree nodes / stored samples / coefficients |
+| `environment()` | — | dict `{python, sklearn, cpu, n_jobs}` | Stored in every test JSON as `env` |
 
 ## `src/results.py`
 | Function | Takes | Returns | Notes |
