@@ -57,7 +57,7 @@ Rows are in the same order as the matching `y_{split}`. `trainval` rows are trai
 | `cells_per_block` | int | 1 or 2 |
 | `dim` | int | Feature length |
 | `extract_s_per_1000` | float | Seconds to extract 1,000 images |
-| `val_acc` | float | Proxy LinearSVC accuracy on val (trained on train) |
+| `val_acc` | float | Proxy linear-SVM (SGD, hinge loss) accuracy on val, trained on train (D-016) |
 
 ## 7. Tuning results — `results/metrics/{name}_{kind}_val.json` (COMMITTED)
 ```json

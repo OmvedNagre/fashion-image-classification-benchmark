@@ -21,8 +21,8 @@ NUM_CLASSES = len(CLASS_NAMES)
 IMAGE_SIZE = 28
 
 # --- HOG features --------------------------------------------------------------
-# Placeholder. Phase v1/02 replaces it with the config chosen by the HOG sweep on val.
-HOG_PARAMS = {"orientations": 9, "pixels_per_cell": (4, 4), "cells_per_block": (2, 2)}
+# Chosen in phase v1/02 by the HOG sweep on the validation set (results/hog_sweep.csv, D-017): 1,728 features.
+HOG_PARAMS = {"orientations": 12, "pixels_per_cell": (4, 4), "cells_per_block": (2, 2)}
 
 # --- Raw data download (D-006, D-012) ------------------------------------------
 RAW_URL_BASE = "https://github.com/zalandoresearch/fashion-mnist/raw/master/data/fashion/"

@@ -33,7 +33,7 @@ From v1/01 (merged 2026-10-24):
      Shapes and dtypes match `data-formats.md` §5. HOG params are in the cache filename. No scaling is done here.
 2. **HOG parameter sweep** (F-06)
    - Acceptance: `run_hog_sweep()` covers orientations {6,9,12} × ppc {4,7} × cpb {1,2} (12 configs). Each one is scored with a
-     LinearSVC fit on train and scored on **val**. `results/hog_sweep.csv` is written. The chosen config is put in
+     proxy linear SVM (SGD, hinge loss, D-016) fit on train and scored on **val**. `results/hog_sweep.csv` is written. The chosen config is put in
      `config.HOG_PARAMS`, and the reasoning is logged in `decisions.md` (accuracy vs dimension vs time).
 3. **HOG visualisation** (S-02)
    - Acceptance: `features_hog_examples.png` shows one image per class next to its HOG image.
@@ -57,7 +57,7 @@ From v1/01 (merged 2026-10-24):
 
 ## Tasks
 - [x] 02.1 — `extract_pixels`, `extract_hog`, `get_features`, `get_labels` with disk cache → `feat(features): add pixel and HOG extractors with caching`
-- [ ] 02.2 — `run_hog_sweep()`, run it, set `HOG_PARAMS`, log the decision → `feat(features): add HOG parameter sweep and select config`
+- [x] 02.2 — `run_hog_sweep()`, run it, set `HOG_PARAMS`, log the decision → `feat(features): add HOG parameter sweep and select config`
 - [ ] 02.3 — `src/evaluate.py` → `feat(eval): add shared evaluation harness`
 - [ ] 02.4 — `src/experiment.py` (`tune_on_val`, `final_test_run`, `cross_validate_best`, test log) → `feat(eval): add tuning, final test run and CV helpers`
 - [ ] 02.5 — `02_features.ipynb`: sweep table, dimension/time discussion, HOG visualisation, why scaling matters per model → `feat(features): add features notebook`

@@ -4,8 +4,16 @@ Both extractors are fixed formulas applied to each image on its own. Nothing is 
 on val/test cannot leak information. Scaling happens later, inside each model's Pipeline (D-004).
 See docs/data-formats.md §5 and docs/module-interfaces.md.
 """
+import itertools
+import time
+
 import numpy as np
+import pandas as pd
 from skimage.feature import hog
+from sklearn.linear_model import SGDClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 from src import config
 from src.data import load_splits
@@ -98,3 +106,58 @@ def get_labels(split: str) -> np.ndarray:
     """Labels for one split, in the same row order as get_features(kind, split)."""
     _validate("pixels", split)
     return _split_arrays(split)[1]
+
+
+# --- HOG parameter sweep (F-06, D-016) ---------------------------------------------
+
+HOG_SWEEP_GRID = {
+    "orientations": [6, 9, 12],
+    "pixels_per_cell": [4, 7],
+    "cells_per_block": [1, 2],
+}
+
+
+def _proxy_model():
+    """Fast linear SVM used only to *rank* HOG configs (D-016).
+
+    SGDClassifier with hinge loss = a linear SVM trained by stochastic gradient descent: seconds instead of
+    the many minutes the exact LinearSVC solver needs on 54k x ~1,700 features.
+    """
+    # Fixed budget of 30 passes for every config (tol=None), so all configs are compared on equal terms.
+    sgd = SGDClassifier(loss="hinge", alpha=1e-4, max_iter=30, tol=None,
+                        random_state=config.SEED, n_jobs=config.N_JOBS)
+    return Pipeline([("scale", StandardScaler()), ("clf", sgd)])
+
+
+def _score_hog_config(params: dict, X_train, y_train, X_val, y_val) -> dict:
+    """Extract HOG with `params`, fit the proxy on train, score on val. Never touches test."""
+    start = time.perf_counter()
+    F_train = extract_hog(X_train, **params)
+    extract_s = time.perf_counter() - start
+    F_val = extract_hog(X_val, **params)
+    model = _proxy_model().fit(F_train, y_train)
+    return {
+        "orientations": params["orientations"],
+        "pixels_per_cell": params["pixels_per_cell"],
+        "cells_per_block": params["cells_per_block"],
+        "dim": F_train.shape[1],
+        "extract_s_per_1000": round(extract_s / len(X_train) * 1000, 3),
+        "val_acc": round(accuracy_score(y_val, model.predict(F_val)), 4),
+    }
+
+
+def run_hog_sweep(grid: dict = None) -> pd.DataFrame:
+    """Score every HOG config in `grid` on the validation set and save the table to results/hog_sweep.csv."""
+    grid = grid or HOG_SWEEP_GRID
+    s = load_splits(verbose=False)
+    rows = []
+    for o, p, c in itertools.product(grid["orientations"], grid["pixels_per_cell"], grid["cells_per_block"]):
+        params = {"orientations": o, "pixels_per_cell": p, "cells_per_block": c}
+        row = _score_hog_config(params, s["X_train"], s["y_train"], s["X_val"], s["y_val"])
+        print(f"{hog_tag(params):10s} dim={row['dim']:5d}  val_acc={row['val_acc']:.4f}")
+        rows.append(row)
+    table = pd.DataFrame(rows)
+    config.HOG_SWEEP_PATH.parent.mkdir(parents=True, exist_ok=True)
+    table.to_csv(config.HOG_SWEEP_PATH, index=False)
+    print(f"saved {config.HOG_SWEEP_PATH.relative_to(config.ROOT)}")
+    return table
