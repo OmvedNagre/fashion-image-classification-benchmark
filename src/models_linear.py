@@ -41,3 +41,27 @@ def make_knn(n_neighbors: int, weights: str, metric: str) -> Pipeline:
             n_jobs=config.N_JOBS,
         )),
     ])
+
+
+def plot_logreg_weights(C: float):
+    """Fit pixel LR on trainval and plot its standardised-pixel class weights."""
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    from src.features import get_features, get_labels
+    from src.utils import Timer
+
+    model = make_logreg(C)
+    with Timer("pixel LR refit for coefficient maps (no test evaluation)"):
+        model.fit(get_features("pixels", "trainval"), get_labels("trainval"))
+    classifier = model.named_steps["clf"]
+    weights = classifier.coef_.reshape(-1, config.IMAGE_SIZE, config.IMAGE_SIZE)
+    limit = float(np.abs(weights).max())
+    fig, axes = plt.subplots(2, config.NUM_CLASSES // 2, figsize=(12, 5.5), layout="constrained")
+    for label, weight, ax in zip(classifier.classes_, weights, axes.flat):
+        image = ax.imshow(weight, cmap="RdBu_r", vmin=-limit, vmax=limit)
+        ax.set_title(config.CLASS_NAMES[label], fontsize=10)
+        ax.axis("off")
+    fig.colorbar(image, ax=axes.ravel().tolist(), shrink=0.8, label="Weight per standardised pixel")
+    fig.suptitle(f"Pixel Logistic Regression coefficients (C={C})")
+    return fig

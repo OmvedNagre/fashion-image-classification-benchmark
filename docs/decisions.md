@@ -34,6 +34,7 @@ Rules:
 | D-019 | 2026-10-24 | v1/02 | Test features are only built inside final_test_run() | Active |
 | D-020 | 2026-10-24 | v1/03 | Increase LR iteration budget to reach convergence | Active |
 | D-021 | 2026-10-24 | v1/03 | Reuse saved experiment results when restarting notebook 03 | Active |
+| D-022 | 2026-10-24 | v1/03 | Plot LR coefficients in standardised-pixel coordinates | Active |
 
 ---
 
@@ -875,3 +876,21 @@ Unconditional test calls during Restart & Run All would repeat test evaluation. 
 
 **Files touched**
 - `notebooks/03_linear_knn.ipynb` — orchestration and saved-result guards.
+
+### D-022 — Plot LR coefficients in standardised-pixel coordinates
+- **Date:** 2026-10-24
+- **Phase:** v1/03 — Dummy, Logistic Regression & kNN
+- **Status:** Active
+- **Type:** algorithm
+
+**Context**
+The final-test harness returns metrics, not fitted models. Phase 03 still needs per-class pixel LR weight maps.
+
+**Decision**
+Refit the validation-selected pixel LR Pipeline on trainval for the figure only; never load or predict test data for this refit. Plot the classifier's coefficients directly in standardised-pixel coordinates, using one symmetric colour scale across all ten classes.
+
+**Why**
+This preserves the harness interface and avoids serialising a model. A coefficient measures score change per standardised pixel unit; dividing by scaler.scale_ would instead express raw-brightness effects and overemphasise rare low-variance pixels. The axis label and notebook explain the chosen interpretation.
+
+**Files touched**
+- `src/models_linear.py`, `docs/module-interfaces.md`, `notebooks/03_linear_knn.ipynb` — weight-map function, interface and explanation.

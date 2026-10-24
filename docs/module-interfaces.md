@@ -55,6 +55,10 @@ Every function returns a **new, unfitted** `sklearn.pipeline.Pipeline`. Scaling 
 
 Default tuning grids live next to these functions as constants (e.g. `KNN_GRID`), copied from the PRD/idea.md.
 
+Phase 03 also provides `models_linear.plot_logreg_weights(C)` → matplotlib Figure: fit the selected pixel LR
+Pipeline on `trainval` (no test access), then show its standardised-pixel coefficients as ten 28×28 maps in a 2×5 grid.
+All classes share one symmetric colour scale. The notebook saves it via `utils.save_fig`.
+
 ## `src/experiment.py` — the only module that runs train → val → test
 | Function | Takes | Returns | Side effects |
 |---|---|---|---|
