@@ -143,3 +143,8 @@ One row per `*_test.json`, built by `results.build_summary()`.
 - Name pattern: `{stage}_{what}.png`. `stage` is one of `eda`, `features`, `linear`, `treekernel`, `results`, `errors`.
   Examples: `eda_sample_grid.png`, `features_hog_examples.png`, `linear_knn_val_curve_pixels.png`,
   `results_acc_vs_time.png`, `errors_misclassified_shirt_vs_tshirt.png`.
+
+Phase 03 produces `linear_logreg_val_curve_pixels.png`, `linear_logreg_val_curve_hog.png`,
+`linear_knn_val_curve_pixels.png`, `linear_knn_val_curve_hog.png`, and `linear_logreg_weights.png`.
+LR curves show every C; kNN curves hold the validation-winning weights/metric fixed while varying k.
+Weight maps are 2×5 standardised-pixel coefficient maps with one symmetric colour scale.

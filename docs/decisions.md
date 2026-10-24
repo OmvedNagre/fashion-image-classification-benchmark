@@ -35,6 +35,7 @@ Rules:
 | D-020 | 2026-10-24 | v1/03 | Increase LR iteration budget to reach convergence | Active |
 | D-021 | 2026-10-24 | v1/03 | Reuse saved experiment results when restarting notebook 03 | Active |
 | D-022 | 2026-10-24 | v1/03 | Plot LR coefficients in standardised-pixel coordinates | Active |
+| D-023 | 2026-10-24 | v1/03 | LR validation rerun chronology and timing limitation | Active |
 
 ---
 
@@ -851,7 +852,7 @@ Never for v1.
 Initial validation fits for pixel LR at C=1 and C=10 emitted ConvergenceWarning at 1,000 iterations.
 
 **Decision**
-Use config.LOGREG_MAX_ITER=5000 for all LR fits, following system-design.md §7. Rerun the full validation grid before final test use.
+Use config.LOGREG_MAX_ITER=5000 for all LR fits, following system-design.md §7. Rerun the full validation grid; parameters remain fixed from the initial full sweep. See D-023 for execution chronology.
 
 **Why**
 An unfinished optimisation can distort the validation curve. Raising the budget preserves the model, solver, seed and C grid; suppressing warnings or removing grid points would hide the issue.
@@ -894,3 +895,21 @@ This preserves the harness interface and avoids serialising a model. A coefficie
 
 **Files touched**
 - `src/models_linear.py`, `docs/module-interfaces.md`, `notebooks/03_linear_knn.ipynb` — weight-map function, interface and explanation.
+
+### D-023 — LR validation rerun chronology and timing limitation
+- **Date:** 2026-10-24
+- **Phase:** v1/03 — Dummy, Logistic Regression & kNN
+- **Status:** Active
+- **Type:** tooling
+
+**Context**
+Both complete initial LR grids selected C=0.01. Those selected fits converged at the original 1,000-iteration cap; only pixel C=1 and C=10 warned. The convergence-only rerun used 5,000 iterations. Final LR fits began while the tail of that validation rerun was still active.
+
+**Decision**
+Keep the original validation-selected C=0.01 for both final tests and preserve their single recorded evaluations. The completed higher-budget sweep independently selected the same C values. No test result influenced any hyperparameter choice. Do not rerun test evaluations just to improve timings.
+
+**Why**
+The parameter choice was already determined by full validation sweeps, and the selected configurations had converged. The overlap is nevertheless a measurement limitation: LR fit/predict timings may include contention from the validation process. Treat timings as descriptive laptop measurements, not isolated performance estimates. The kNN final evaluations ran after all tuning had ended.
+
+**Files touched**
+- `docs/decisions.md`, phase 03 handoff and PR — disclose chronology and timing limitations; metrics and append-only audit are preserved.

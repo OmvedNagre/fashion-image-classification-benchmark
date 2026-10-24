@@ -61,7 +61,7 @@ From v1/02 (merged 2026-10-24):
 - [x] 03.3 — LR tuning + final test (both features) + validation curves → `feat(linear): tune and evaluate logistic regression`
 - [x] 03.4 — kNN tuning + final test (both features) + validation curves → `feat(linear): tune and evaluate kNN`
 - [x] 03.5 — LR weight heatmaps + notebook write-up (softmax/cross-entropy, role of C, why kNN is slow at predict time, curse of dimensionality) → `feat(linear): add LR weight maps and analysis`
-- [ ] 03.6 — Update docs touched by this phase → `docs(phase-03): update docs and decisions`
+- [x] 03.6 — Update docs touched by this phase → `docs(phase-03): update docs and decisions`
 
 ## Done criteria
 - [ ] 6 `*_val.json` + 6 `*_test.json` (dummy, logreg, knn × pixels, hog)
