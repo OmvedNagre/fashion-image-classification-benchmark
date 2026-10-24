@@ -56,7 +56,7 @@ From v1/02 (merged 2026-10-24):
 - `system-design.md` → Flow C, §7 (LR convergence)
 
 ## Tasks
-- [ ] 03.1 — `src/models_linear.py` with factories + grids → `feat(models): add dummy, logistic regression and kNN factories`
+- [x] 03.1 — `src/models_linear.py` with factories + grids → `feat(models): add dummy, logistic regression and kNN factories`
 - [ ] 03.2 — Dummy baseline runs (both features) → `feat(linear): run dummy baseline`
 - [ ] 03.3 — LR tuning + final test (both features) + validation curves → `feat(linear): tune and evaluate logistic regression`
 - [ ] 03.4 — kNN tuning + final test (both features) + validation curves → `feat(linear): tune and evaluate kNN`
