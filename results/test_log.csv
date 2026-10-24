@@ -9,3 +9,5 @@ timestamp,experiment,accuracy
 2026-10-25T00:06:34,rf_hog,0.8703
 2026-10-25T00:53:52,linear_svm_pixels,0.8378
 2026-10-25T00:56:35,linear_svm_hog,0.8898
+2026-10-25T01:21:27,rbf_svm_pixels,0.8970
+2026-10-25T02:03:27,rbf_svm_hog,0.9108
