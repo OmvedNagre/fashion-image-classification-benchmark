@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Owner | Tanmay Singh |
-| Status | in-progress |
+| Status | review |
 | Branch | `phase/v1-04-rf-svm` |
 | Depends on | Phase v1/03 |
 | PRD features | F-10, S-01 |
@@ -58,15 +58,15 @@ From v1/03 (PR #1 by Rajat, merged 2026-10-24):
 - [x] 04.3 — LinearSVC tuning + final test (both features) → `feat(treekernel): tune and evaluate linear SVM`
 - [x] 04.4 — RBF SVM subset tuning + final 60k refit + test (both features) → `feat(treekernel): tune and evaluate RBF SVM`
 - [x] 04.5 — Notebook write-up (bagging, Gini, why there's no scaling for RF, margin/hinge loss, kernel trick, C/gamma, SVM scaling cost) → `feat(treekernel): add RF and SVM analysis`
-- [ ] 04.6 — Update docs touched by this phase → `docs(phase-04): update docs and decisions`
+- [x] 04.6 — Update docs touched by this phase → `docs(phase-04): update docs and decisions`
 
 ## Done criteria
-- [ ] 6 more `*_val.json` + `*_test.json` pairs (rf, linear_svm, rbf_svm × pixels, hog)
-- [ ] `test_log.csv`: one row per experiment, 12 in total
-- [ ] Pixel accuracies within the sanity ranges (or a logged explanation)
-- [ ] Runtimes of the slow fits recorded in the notebook
-- [ ] `04_rf_svm.ipynb` runs top-to-bottom (long cells clearly marked with expected runtime)
-- [ ] Docs match what was built; decisions logged
+- [x] 6 more `*_val.json` + `*_test.json` pairs (rf, linear_svm, rbf_svm × pixels, hog)
+- [x] `test_log.csv`: one row per experiment, 12 in total
+- [x] Pixel accuracies within the sanity ranges (or a logged explanation)
+- [x] Runtimes of the slow fits recorded in the notebook
+- [x] `04_rf_svm.ipynb` runs top-to-bottom (long cells clearly marked with expected runtime)
+- [x] Docs match what was built; decisions logged
 
 ## How to verify
 1. Same schema scratch check as phase 03, run over all 12 test JSONs.
@@ -75,9 +75,27 @@ From v1/03 (PR #1 by Rajat, merged 2026-10-24):
 
 ## Phase summary
 - **Built:**
+  - `src/models_tree_kernel.py` with `make_rf`, `make_linear_svm`, `make_rbf_svm` and parameter grids `RF_GRID`, `LINEAR_SVM_GRID`, `RBF_SVM_GRID`.
+  - 6 new validation metric JSONs (`*_val.json`) and 6 single-evaluation test metric JSONs (`*_test.json`).
+  - Validation curves for all models in `results/figures/treekernel_*_val_curve_*.png`.
+  - 28×28 pixel feature importance heatmap in `results/figures/treekernel_rf_importance.png`.
+  - Complete analysis notebook `notebooks/04_rf_svm.ipynb` executed top-to-bottom with cached outputs, theoretical writeups, and diagnostic confusion analysis.
+- **Key results:**
+  - `rf_pixels`: val acc 88.67% (`max_depth=20, max_features='sqrt', n_estimators=300`) -> test acc **87.56%**, macro F1 0.8741 (2,544,086 tree nodes).
+  - `rf_hog`: val acc 87.35% (`max_depth=None, max_features='sqrt', n_estimators=300`) -> test acc **87.03%**, macro F1 0.8692 (3,475,990 tree nodes).
+  - `linear_svm_pixels`: val acc 85.83% (`C=0.01`) -> test acc **83.78%**, macro F1 0.8353 (7,850 coefficients).
+  - `linear_svm_hog`: val acc 89.00% (`C=0.01`) -> test acc **88.98%**, macro F1 0.8892 (17,290 coefficients). Massive +5.2 percentage point gain over pixels.
+  - `rbf_svm_pixels`: val acc 87.93% on 10k subset (`C=10, gamma=0.001`) -> test acc **89.70%**, macro F1 0.8967 (19,710 support vectors).
+  - `rbf_svm_hog`: val acc 88.67% on 10k subset (`C=10, gamma='scale'`) -> test acc **91.08%**, macro F1 0.9108 (26,343 support vectors). Top accuracy across all 12 benchmark models.
 - **Key decisions:**
+  - D-026: Configured `make_linear_svm` with `dual="auto"` and `max_iter=5000`. $C=0.01$ won on validation for both feature sets, avoiding the steep convergence penalty of higher $C$.
+  - D-027: Class-stratified 10,000 subset tuning for RBF SVM reduced hyperparameter search time by ~29×, accurately identifying optimal parameters prior to full 60,000 image refit.
 - **Known limitations:**
+  - RBF SVM on HOG has high test inference latency (~28.9 ms per image / 28,877 ms per 1,000 images) due to evaluating 26,343 support vectors in 1,728 dimensions per sample.
 - **Next phase should know:**
+  - All 12 test experiments are complete and audited in `results/test_log.csv` (1 row per experiment).
+  - RBF SVM HOG (91.08%) is the top-performing model overall by validation and test accuracy, closely followed by RBF SVM Pixels (89.70%) and LinearSVC HOG (88.98%).
+  - Phase 05 can directly pull from `results/metrics/*_test.json` to generate the global benchmark comparison tables, Pareto latency frontiers, and final 5-fold CV stability analysis.
 
 ## Next phase preview
 Phase 05 aggregates every result, picks the best model by val accuracy, checks its stability with 5-fold CV, and runs

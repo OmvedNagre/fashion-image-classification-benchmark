@@ -1094,3 +1094,78 @@ Notebook 03 was re-run top to bottom after the move: 0 errors, `test_log.csv` by
 
 **Revisit if**
 Phase 05 needs the weight maps again. Then it can read the PNG or move the code into `results.py` as part of its own scope.
+
+---
+
+### D-026 — LinearSVC dual optimization and convergence behavior across feature sets
+- **Date:** 2026-10-25
+- **Phase:** v1/04 — Random Forest & SVM (author: Tanmay Singh)
+- **Status:** Active
+- **Type:** algorithm
+
+**Context**
+LinearSVC optimization on 54k/60k images with $d=784$ (pixels) and $d=1,728$ (HOG) poses significant dual vs primal convergence trade-offs as $C$ increases. In Phase 02, exact LinearSVC on HOG was flagged as slow.
+
+**Decision**
+Configure `make_linear_svm` with `dual="auto"` (scikit-learn selects primal coordinate descent when $n_{\text{samples}} > n_{\text{features}}$, which holds since $54,000 > 784$ and $54,000 > 1,728$), capped at `max_iter=5000`. Sweep $C \in [0.01, 0.1, 1.0]$. Both feature sets chose $C=0.01$ as the validation winner with rapid convergence (105s on pixels, 34s on HOG).
+
+**Alternatives considered**
+| Option | Why not chosen |
+|---|---|
+| Fixed `dual=True` | Extremely slow for $N=54,000$ (dual coordinate descent scales quadratically with sample count) |
+| Subsetting training set | Unnecessary because primal formulation with $C=0.01$ solves in ~1–2 minutes on the full 54k training set |
+| SGDClassifier(loss='hinge') | Approximates LinearSVC via stochastic gradient descent, but requires learning rate scheduling and doesn't guarantee the exact coordinate descent solution |
+
+**Why**
+Primal coordinate descent (`dual="auto"`) converges rapidly when $N \gg d$, providing an exact linear SVM baseline across all 60k samples without downsampling. Higher $C$ values ($C=1.0$) caused fit times to spike ($924$s on pixels) due to strict penalties on margin violations on non-separable image data, confirming $C=0.01$ as both the optimal and fastest regularisation choice.
+
+**How it works**
+`make_linear_svm(C)` wraps `StandardScaler` and `LinearSVC(C=C, dual="auto", max_iter=5000, random_state=42)`. On raw pixels, test accuracy was 83.78%; on HOG, test accuracy reached 88.98% (+5.2 percentage points), demonstrating the immense power of edge-orientation histograms for linear hyperplanes.
+
+**Files touched**
+- `src/models_tree_kernel.py`, `results/metrics/linear_svm_*`, `notebooks/04_rf_svm.ipynb`
+
+**Concepts worth learning**
+- Primal vs. dual coordinate descent in linear SVMs; LibLinear solver selection based on sample vs feature ratios.
+- The effect of regularisation $C$ on the number of margin violations and solver iteration count.
+
+**Revisit if**
+Never in v1 classical benchmark.
+
+---
+
+### D-027 — RBF SVM stratified 10k subset tuning and full 60k refit scaling
+- **Date:** 2026-10-25
+- **Phase:** v1/04 — Random Forest & SVM (author: Tanmay Singh)
+- **Status:** Active
+- **Type:** algorithm
+
+**Context**
+Non-linear kernel SVM training with LibSVM has $O(N^2 d)$ to $O(N^3 d)$ time complexity. Evaluating 9 grid combinations of $(C, \gamma)$ on the full $N=54,000$ training set would require $>2.9$ billion kernel operations per fit and would take hours/days.
+
+**Decision**
+Perform hyperparameter selection on a class-stratified 10,000 training subset (`config.SVM_TUNE_SUBSET=10000`, seed 42) scored on the full 6,000 validation set. Refit the winning hyperparameters on all 60,000 images (`trainval`) for the final test evaluation.
+
+**Alternatives considered**
+| Option | Why not chosen |
+|---|---|
+| Full 54k tuning for all 9 combos | Impractical compute requirement (>6 hours) without altering the winning hyperparameter choices |
+| Random non-stratified subset | Might skew class proportions and misrepresent hard boundary classes like Shirt/Coat/Pullover |
+| Nyström / RBF feature approximation | Changes the model architecture away from exact RBF SVM (PRD S-01 requirement) |
+
+**Why**
+Stratified subsampling reduces tuning time by $(54/10)^2 \approx 29.2\times$, while preserving class balance (1,000 images per class) and representative margin boundaries. Validation accurately favored moderate regularisation ($C=10$) with well-conditioned bandwidths ($\gamma=0.001$ for pixels, $\gamma=\text{'scale'}$ for HOG), while identifying that $\gamma=0.01$ collapses kernel distances in 784/1,728 dimensions. The 60k refit then captures all available training data, achieving 89.70% (pixels) and 91.08% (HOG).
+
+**How it works**
+`tune_on_val(..., train_subset=config.SVM_TUNE_SUBSET)` records `"train_subset": 10000` in `rbf_svm_*_val.json`. `final_test_run()` trains on full 60k, yielding 19,710 support vectors for pixels and 26,343 for HOG.
+
+**Files touched**
+- `src/models_tree_kernel.py`, `src/experiment.py`, `results/metrics/rbf_svm_*`, `notebooks/04_rf_svm.ipynb`
+
+**Concepts worth learning**
+- Quadratic solver scaling in kernel machines; Mercer's theorem.
+- Bandwidth $\gamma$ conditioning in high dimensions ($d=784, 1728$); support vector sparsity.
+
+**Revisit if**
+Phase 05 uses RBF SVM for 5-fold CV; 10k subset or parallel fold execution may be required.
+
