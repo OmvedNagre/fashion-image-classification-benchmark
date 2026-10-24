@@ -5,3 +5,5 @@ timestamp,experiment,accuracy
 2026-10-24T22:08:43,logreg_hog,0.8886
 2026-10-24T22:38:04,knn_pixels,0.8611
 2026-10-24T22:38:31,knn_hog,0.8631
+2026-10-25T00:05:21,rf_pixels,0.8756
+2026-10-25T00:06:34,rf_hog,0.8703
