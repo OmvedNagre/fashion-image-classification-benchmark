@@ -326,6 +326,8 @@ and these are the checksums the dataset authors publish.
 Stream each file through `hashlib.md5()` and compare the hex digest to the expected value. On a mismatch, delete the
 file and raise `RuntimeError("checksum mismatch for <file>: re-run to download again")`. The expected values are copied
 from github.com/zalandoresearch/fashion-mnist during phase 01 and verified against the actual download.
+**Confirmed 2026-10-24 (phase 01):** all four official MD5s matched the real download, and a truncated file was correctly
+detected and deleted. Download over HTTPS from GitHub took ~5 minutes in total.
 
 **Files touched**
 - `src/config.py`, `src/data.py` (phase 01); `docs/prd.md` F-01

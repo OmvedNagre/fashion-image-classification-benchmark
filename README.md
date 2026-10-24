@@ -36,6 +36,7 @@ Colab's free CPU is slower than a modern laptop, and its files disappear when th
 python -c "from src.data import download_raw; download_raw()"
 ```
 This downloads the 4 official files (~30 MB) into `data/raw/` and checks each one against Zalando's published MD5 checksum.
+The GitHub server can be slow, so this may take ~5 minutes. Re-running skips files that are already there and verified.
 
 ## Run order
 <!-- Completed in phase v1/05. -->
