@@ -78,3 +78,62 @@ def load_raw():
     X_test = _read_idx("t10k-images-idx3-ubyte.gz", IMAGE_HEADER_BYTES).reshape(-1, side, side)
     y_test = _read_idx("t10k-labels-idx1-ubyte.gz", LABEL_HEADER_BYTES).astype(np.int64)
     return X_train_full, y_train_full, X_test, y_test
+
+
+# --- Sanity checks -------------------------------------------------------------
+
+EXPECTED_TRAIN_PER_CLASS = 6000
+EXPECTED_TEST_PER_CLASS = 1000
+
+
+def _image_hashes(images: np.ndarray) -> list:
+    """One MD5 per image, so identical images get identical hashes."""
+    return [hashlib.md5(img.tobytes()).hexdigest() for img in images]
+
+
+def _check_invariants(report: dict) -> None:
+    """Raise if the data is not what the official dataset should be."""
+    problems = []
+    if report["train_shape"] != [60000, 28, 28] or report["test_shape"] != [10000, 28, 28]:
+        problems.append("unexpected image shapes")
+    if report["label_range"] != [0, 9]:
+        problems.append("labels outside 0–9")
+    if report["nan_count"] != 0:
+        problems.append("NaN values present")
+    if set(report["train_class_counts"]) != {EXPECTED_TRAIN_PER_CLASS}:
+        problems.append("train is not 6,000 per class")
+    if set(report["test_class_counts"]) != {EXPECTED_TEST_PER_CLASS}:
+        problems.append("test is not 1,000 per class")
+    if problems:
+        raise RuntimeError(f"Sanity checks failed: {problems}. Delete data/raw/ and re-run download_raw().")
+
+
+def run_sanity_checks() -> dict:
+    """Check the raw data and report duplicates. Raises RuntimeError if a basic property is wrong.
+
+    Duplicates are only counted, not removed, to stay comparable with published results (D-004).
+    The test images are only hashed here; no label or choice is derived from them.
+    """
+    X_train_full, y_train_full, X_test, y_test = load_raw()
+    train_hashes = _image_hashes(X_train_full)
+    test_hashes = _image_hashes(X_test)
+    train_hash_set = set(train_hashes)
+
+    report = {
+        "train_shape": list(X_train_full.shape),
+        "test_shape": list(X_test.shape),
+        "image_dtype": str(X_train_full.dtype),
+        "label_dtype": str(y_train_full.dtype),
+        "pixel_range": [int(min(X_train_full.min(), X_test.min())), int(max(X_train_full.max(), X_test.max()))],
+        "label_range": [int(min(y_train_full.min(), y_test.min())), int(max(y_train_full.max(), y_test.max()))],
+        "nan_count": int(np.isnan(X_train_full.astype(np.float32)).sum() + np.isnan(X_test.astype(np.float32)).sum()),
+        "train_class_counts": np.bincount(y_train_full, minlength=config.NUM_CLASSES).tolist(),
+        "test_class_counts": np.bincount(y_test, minlength=config.NUM_CLASSES).tolist(),
+        "duplicates_within_train": len(train_hashes) - len(train_hash_set),
+        "duplicates_within_test": len(test_hashes) - len(set(test_hashes)),
+        "test_images_also_in_train": sum(h in train_hash_set for h in test_hashes),
+    }
+    _check_invariants(report)
+    for key, value in report.items():
+        print(f"{key:28s} {value}")
+    return report

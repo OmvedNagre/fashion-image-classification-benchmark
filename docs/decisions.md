@@ -243,6 +243,10 @@ Each control is one or two lines of code but closes a specific question an exami
 - sklearn Pipeline: chains preprocessing and model so `fit` and `predict` apply each step correctly.
 - Stateless vs fitted transform: HOG/flatten have no learned parameters, while a scaler learns mean/std from data.
 
+**Finding (2026-10-24, phase 01):** `run_sanity_checks()` found **0** exact duplicates inside train, 0 inside test,
+and 0 test images that also appear in train (MD5 hash per image). So rule 5 (keep duplicates) changes nothing in practice,
+and there is no image-level train/test leakage in the official split.
+
 **Revisit if**
 A new preprocessing step that learns from data (e.g. PCA) is added. It must go inside the Pipeline.
 
