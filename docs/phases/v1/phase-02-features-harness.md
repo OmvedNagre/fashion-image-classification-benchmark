@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Owner | _TBD_ (set when the phase starts) |
-| Status | not-started |
+| Owner | Rajdeep |
+| Status | review |
 | Branch | `phase/v1-02-features-harness` |
 | Depends on | Phase v1/01 |
 | PRD features | F-05, F-06, F-07, F-08, S-02 |
@@ -17,7 +17,15 @@ val and justified by a sweep table. One shared, leak-proof harness (`tune_on_val
 exists and is verified, so phases 03 and 04 only need to plug in models.
 
 ## Previous phase summary
-<!-- Filled by the owner at phase start (AGENTS.md §6.1): copy the essentials of phase 01's \"Phase summary\" here. -->
+From v1/01 (merged 2026-10-24):
+- `src/data.load_splits()` returns the fixed split: train 54,000 / val 6,000 (600 per class) / test 10,000, as float32 in [0,1],
+  shape (N,28,28). Split file `data/splits/val_indices.npy`, MD5 `54ff6b78b27109cdfc3ebe7204040a07`. Never re-split.
+- `src/config.py` holds every constant (`SEED`, `N_JOBS`, `SVM_TUNE_SUBSET`, paths). `HOG_PARAMS` is a **placeholder** that this phase replaces.
+- `src/utils.py`: `set_seed`, `Timer`, `save_fig(fig, name)` → `results/figures/{name}.png`.
+- Data is clean: official MD5s match; 0 duplicates; 0 test images in train.
+- EDA (train only): Shirt / Coat / Pullover are nearly identical in pixel space (mean-image cosine ≈ 0.98), so Shirt is the expected
+  hardest class. PCA: 84 comps = 90% variance. Worth checking whether HOG separates the tops better.
+- Notebooks start with the `sys.path` cell from notebook 01 (AGENTS.md §5). No `data/processed/` cache (D-014).
 
 ## In scope — exact features
 1. **Pixel + HOG extraction with cache** (F-05)
@@ -25,7 +33,7 @@ exists and is verified, so phases 03 and 04 only need to plug in models.
      Shapes and dtypes match `data-formats.md` §5. HOG params are in the cache filename. No scaling is done here.
 2. **HOG parameter sweep** (F-06)
    - Acceptance: `run_hog_sweep()` covers orientations {6,9,12} × ppc {4,7} × cpb {1,2} (12 configs). Each one is scored with a
-     LinearSVC fit on train and scored on **val**. `results/hog_sweep.csv` is written. The chosen config is put in
+     proxy linear SVM (SGD, hinge loss, D-016) fit on train and scored on **val**. `results/hog_sweep.csv` is written. The chosen config is put in
      `config.HOG_PARAMS`, and the reasoning is logged in `decisions.md` (accuracy vs dimension vs time).
 3. **HOG visualisation** (S-02)
    - Acceptance: `features_hog_examples.png` shows one image per class next to its HOG image.
@@ -48,20 +56,20 @@ exists and is verified, so phases 03 and 04 only need to plug in models.
 - `decisions.md` → D-004, D-005, D-007, D-008, D-011
 
 ## Tasks
-- [ ] 02.1 — `extract_pixels`, `extract_hog`, `get_features`, `get_labels` with disk cache → `feat(features): add pixel and HOG extractors with caching`
-- [ ] 02.2 — `run_hog_sweep()`, run it, set `HOG_PARAMS`, log the decision → `feat(features): add HOG parameter sweep and select config`
-- [ ] 02.3 — `src/evaluate.py` → `feat(eval): add shared evaluation harness`
-- [ ] 02.4 — `src/experiment.py` (`tune_on_val`, `final_test_run`, `cross_validate_best`, test log) → `feat(eval): add tuning, final test run and CV helpers`
-- [ ] 02.5 — `02_features.ipynb`: sweep table, dimension/time discussion, HOG visualisation, why scaling matters per model → `feat(features): add features notebook`
-- [ ] 02.6 — Update docs touched by this phase → `docs(phase-02): update docs and decisions`
+- [x] 02.1 — `extract_pixels`, `extract_hog`, `get_features`, `get_labels` with disk cache → `feat(features): add pixel and HOG extractors with caching`
+- [x] 02.2 — `run_hog_sweep()`, run it, set `HOG_PARAMS`, log the decision → `feat(features): add HOG parameter sweep and select config`
+- [x] 02.3 — `src/evaluate.py` → `feat(eval): add shared evaluation harness`
+- [x] 02.4 — `src/experiment.py` (`tune_on_val`, `final_test_run`, `cross_validate_best`, test log) → `feat(eval): add tuning, final test run and CV helpers`
+- [x] 02.5 — `02_features.ipynb`: sweep table, dimension/time discussion, HOG visualisation, why scaling matters per model → `feat(features): add features notebook`
+- [x] 02.6 — Update docs touched by this phase → `docs(phase-02): update docs and decisions`
 
 ## Done criteria
-- [ ] Cached features exist for pixels and the chosen HOG config, for all 4 splits
-- [ ] `hog_sweep.csv` has 12 rows. The chosen config is justified in `decisions.md`
-- [ ] The harness is verified end to end on a tiny model **against a temporary results folder**, so the real
+- [x] Cached features exist for pixels and the chosen HOG config for train / val / trainval (test is built on demand by `final_test_run()`, D-019)
+- [x] `hog_sweep.csv` has 12 rows. The chosen config is justified in `decisions.md`
+- [x] The harness is verified end to end on a tiny model **against a temporary results folder**, so the real
       `results/metrics/` and `test_log.csv` stay empty until phase 03
-- [ ] Notebook 02 runs top-to-bottom with no errors
-- [ ] Docs match what was built; decisions logged
+- [x] Notebook 02 runs top-to-bottom with no errors
+- [x] Docs match what was built; decisions logged
 
 ## How to verify
 1. Scratch test (`.scratch/test_harness.py`): point the config paths at a temp folder, run `tune_on_val` + `final_test_run` with
@@ -71,10 +79,24 @@ exists and is verified, so phases 03 and 04 only need to plug in models.
 3. Notebook 02 → Restart & Run All.
 
 ## Phase summary
-- **Built:**
-- **Key decisions:**
-- **Known limitations:**
-- **Next phase should know:**
+- **Built:** `src/features.py` (`extract_pixels`, `extract_hog`, cached `get_features(kind, split)`, `get_labels`,
+  `hog_tag`, `run_hog_sweep`); `src/evaluate.py` (`evaluate`, `model_size_bytes`, `model_size_detail`, `environment`);
+  `src/experiment.py` (`tune_on_val`, `final_test_run`, `cross_validate_best`, `stratified_subset`, test log);
+  `utils.save_json` / `display_path`; `results/hog_sweep.csv`; `notebooks/02_features.ipynb` + 3 figures `features_*.png`.
+- **Key results:** HOG sweep (proxy SGD linear SVM, val): **o12_p4_c2 = 0.8818** (1,728-d, chosen), o9_p4_c2 0.8783,
+  … o6_p7_c1 0.7612. 4×4 cells ≫ 7×7; 2×2 blocks > 1×1. HOG extraction ≈ 0.22 s / 1,000 images.
+  Harness verified against a temp folder: tuning provably never reads test, scaler learns from training rows only,
+  the test log warns on re-runs. Fresh clone runs notebooks 01–02 with 0 errors and byte-identical figures.
+  **`results/metrics/` and `results/test_log.csv` are still empty: the test set has not been touched yet.**
+- **Key decisions:** D-016 (SGD proxy, fixed 30 epochs), D-017 (HOG o12_p4_c2), D-018 (harness rules), D-019 (test features
+  only via `final_test_run`).
+- **Known limitations:** the exact `LinearSVC` solver is very slow on 54k × 1,728 HOG (>10 min per fit). Phase 04's
+  LinearSVC may need `dual=False` plus patience, or a documented subset. `tune_on_val` picks the strict max val accuracy;
+  "prefer simpler within 0.3 points" is a manual, logged choice.
+- **Next phase should know:** build a model as a factory returning an *unfitted* Pipeline (scaler inside for LR/kNN/SVM), then:
+  `best, table = tune_on_val(name, make_fn, GRID, kind)` → `final_test_run(name, make_fn, best, kind)`. Run
+  `final_test_run` **once per experiment** at the very end (every call is logged). The first test call builds the test
+  feature cache (~3 s for HOG). Copy notebook 01's first cell for imports.
 
 ## Next phase preview
 Phase 03 writes the model factories for Dummy, Logistic Regression and kNN, then runs them through this harness on both feature sets.

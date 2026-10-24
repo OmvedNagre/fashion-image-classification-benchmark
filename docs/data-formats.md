@@ -45,7 +45,7 @@ IDX format: gzip file, then a big-endian header (16 bytes for images, 8 bytes fo
 | File pattern | dtype | Shape |
 |---|---|---|
 | `pixels_{split}.npy` | float32 | (N, 784). Unscaled values in [0,1]. Scaling happens inside model Pipelines (D-004) |
-| `hog_o{orientations}_p{ppc}_c{cpb}_{split}.npy` | float32 | (N, d), where d depends on the params (e.g. o9/p4/c2 → 1296) |
+| `hog_o{orientations}_p{ppc}_c{cpb}_{split}.npy` | float32 | (N, d), where d depends on the params. Chosen config o12/p4/c2 → **1,728** (D-017) |
 
 Rows are in the same order as the matching `y_{split}`. `trainval` rows are train rows followed by val rows.
 
@@ -57,7 +57,7 @@ Rows are in the same order as the matching `y_{split}`. `trainval` rows are trai
 | `cells_per_block` | int | 1 or 2 |
 | `dim` | int | Feature length |
 | `extract_s_per_1000` | float | Seconds to extract 1,000 images |
-| `val_acc` | float | Proxy LinearSVC accuracy on val (trained on train) |
+| `val_acc` | float | Proxy linear-SVM (SGD, hinge loss) accuracy on val, trained on train (D-016) |
 
 ## 7. Tuning results — `results/metrics/{name}_{kind}_val.json` (COMMITTED)
 ```json

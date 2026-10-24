@@ -17,7 +17,7 @@ by code, RQ1–RQ4 are answered in writing, and the README lets anyone reproduce
 This is v1 (capstone Phase 1) code-complete.
 
 ## Previous phase summary
-<!-- Filled by the owner at phase start (AGENTS.md §6.1): copy the essentials of phase 04's \"Phase summary\" here. -->
+<!-- Filled by the owner at phase start (AGENTS.md §6.1): copy the essentials of phase 04's "Phase summary" here. -->
 
 ## In scope — exact features
 1. **Aggregation** (F-12)

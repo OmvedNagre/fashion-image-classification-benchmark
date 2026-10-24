@@ -65,6 +65,7 @@ fashion-image-classification-benchmark/
 │   ├── metrics/               # one JSON per experiment (val tuning tables + test metrics)
 │   ├── figures/               # every PNG used in the report/slides
 │   ├── test_log.csv           # audit log: one row each time the test set is evaluated
+│   ├── hog_sweep.csv          # HOG config sweep (val accuracy per config)
 │   └── summary.csv
 └── docs/                      # project docs (this folder)
 ```
@@ -111,7 +112,8 @@ There are no environment variables or secrets. All settings are constants in `sr
 | `SEED` | Seed for split, models, subsampling | `42` |
 | `VAL_SIZE` | Validation size taken from the 60k train set | `6000` |
 | `SVM_TUNE_SUBSET` | Train subset size for RBF-SVM tuning | `10000` |
-| `HOG_PARAMS` | Final HOG config, set after the sweep in phase 02 | `{"orientations": 9, "pixels_per_cell": (4, 4), "cells_per_block": (2, 2)}` |
+| `HOG_PARAMS` | Final HOG config, chosen by the phase 02 sweep (D-017) | `{"orientations": 12, "pixels_per_cell": (4, 4), "cells_per_block": (2, 2)}` |
+| `TEST_LOG_PATH`, `HOG_SWEEP_PATH` | Where the test audit log and HOG sweep table live | `results/test_log.csv`, `results/hog_sweep.csv` |
 | `N_JOBS` | Parallel workers, capped for 8 GB RAM | `4` |
 | `CLASS_NAMES` | 10 label names | `["T-shirt/top", …, "Ankle boot"]` |
 | Paths | `DATA_DIR`, `FEATURES_DIR`, `RESULTS_DIR`, … | `Path(__file__).parents[1] / "data"` |

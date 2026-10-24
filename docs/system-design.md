@@ -37,7 +37,7 @@ Notes:
 - `hog`: `skimage.feature.hog` per image with `config.HOG_PARAMS`. The cache filename includes the params
   (e.g. `hog_o9_p4_c2_train.npy`), so changing params can never silently reuse old features.
 - `split` ∈ {`train`, `val`, `trainval`, `test`}. `trainval` = all 60k, used only for the final refit.
-- HOG sweep: for each config, a proxy model (LinearSVC) is fit on the train features and scored on val. Only val is used.
+- HOG sweep: for each config, a proxy linear SVM (`SGDClassifier`, hinge loss, D-016) is fit on the train features and scored on val. Only val is used.
 
 ### Flow C: One experiment (phases 03–04)
 ```mermaid

@@ -28,6 +28,10 @@ Rules:
 | D-013 | 2026-10-24 | planning | One owner per phase, delivered as a reviewed PR; AGENTS.md + PR template | Active |
 | D-014 | 2026-10-24 | v1/01 | No `data/processed/` cache; load straight from the .gz files | Active |
 | D-015 | 2026-10-24 | v1/01 | EDA design: train-only, 5k subsample, PCA→50 before t-SNE, notebook import cell | Active |
+| D-016 | 2026-10-24 | v1/02 | HOG sweep proxy = SGD linear SVM with a fixed 30-epoch budget | Active |
+| D-017 | 2026-10-24 | v1/02 | Final HOG config: orientations 12, cells 4×4, blocks 2×2 (1,728-d) | Active |
+| D-018 | 2026-10-24 | v1/02 | Harness details: best = strict max val acc, sequential CV, test-log warning | Active |
+| D-019 | 2026-10-24 | v1/02 | Test features are only built inside final_test_run() | Active |
 
 ---
 
@@ -679,3 +683,157 @@ not project dependencies.
 
 **Revisit if**
 Phase 05's confusion matrices disagree with the EDA's predicted hard classes. Then discuss why in the error analysis.
+
+---
+
+### D-016 — HOG sweep proxy = SGD linear SVM with a fixed 30-epoch budget
+- **Date:** 2026-10-24
+- **Phase:** v1/02 — Features & Evaluation Harness
+- **Status:** Active
+- **Type:** algorithm
+
+**Context**
+The plan was to score each of the 12 HOG configs with a scaled `LinearSVC`. On 54k × 1,728 features the exact
+(liblinear, primal) solver had not finished **one** config after 10 minutes, so all 12 would take hours.
+
+**Decision**
+Use `Pipeline(StandardScaler, SGDClassifier(loss="hinge", alpha=1e-4, max_iter=30, tol=None, random_state=42))` as the proxy.
+
+**Alternatives considered**
+| Option | Why not chosen |
+|---|---|
+| `LinearSVC` (exact solver) | > 10 min per config, hours for the sweep |
+| `LinearSVC` on a 10k subset | Faster, but ranks configs on less data than the real models get |
+| `LogisticRegression` (lbfgs) | Also slow on 1,700-d features with 54k rows |
+| SGD with the default stopping rule | Emits a `ConvergenceWarning` (SGD keeps wobbling) and stops at different epochs per config |
+
+**Why**
+The proxy's job is only to **rank** HOG configs fairly, not to be a final model. SGD with hinge loss optimises the same
+objective as a linear SVM, takes ~25 s per config, and a fixed 30-epoch budget gives every config identical treatment
+(no early stopping that could favour one config).
+
+**How it works**
+For each config: extract HOG for the 54k train and 6k val images → fit scaler + SGD on train → accuracy on val.
+`tol=None` turns off the convergence check, so it always runs exactly 30 passes over the data. Seeded, so it's repeatable.
+The whole sweep takes ~2.5 minutes on the M3.
+
+**Files touched**
+- `src/features.py`, `docs/data-formats.md` §6, `docs/system-design.md` Flow B, phase-02 file
+
+**Concepts worth learning**
+- Stochastic gradient descent: update the model after small random batches instead of solving exactly; fast but noisy.
+- Hinge loss: the SVM loss, which is 0 for points beyond the margin and grows linearly for points inside it or misclassified.
+- Proxy model: a cheap model used only to compare *inputs* (here feature configs), not to report final accuracy.
+
+**Revisit if**
+The best two configs are within noise of each other and the choice matters. Then re-check them with a stronger model.
+
+---
+
+### D-017 — Final HOG config: orientations 12, cells 4×4, blocks 2×2 (1,728-d)
+- **Date:** 2026-10-24
+- **Phase:** v1/02 — Features & Evaluation Harness
+- **Status:** Active
+- **Type:** algorithm
+
+**Context**
+Sweep results (`results/hog_sweep.csv`, proxy val accuracy): o12_p4_c2 **0.8818** (1,728-d), o9_p4_c2 0.8783 (1,296-d),
+o6_p4_c2 0.8757 (864-d) … down to o6_p7_c1 0.7612 (96-d). Extraction takes ~0.22 s per 1,000 images for 4×4 cells.
+
+**Decision**
+`HOG_PARAMS = {"orientations": 12, "pixels_per_cell": (4, 4), "cells_per_block": (2, 2)}`.
+
+**Alternatives considered**
+| Option | Why not chosen |
+|---|---|
+| o9_p4_c2 (the classic Dalal–Triggs choice, 1,296-d) | 0.35 points lower on val. That's above the 0.3-point tie threshold set in D-005, so the pre-stated rule picks o12 |
+| 7×7 cells | 4–8 points worse: at 28×28 a 7×7 cell covers a quarter of the image width and blurs away the shape |
+
+**Why**
+The rule fixed in advance was "highest val accuracy, ties within 0.3 points go to the simpler config". o12_p4_c2 wins by
+0.35 points. The extra dimensions (1,728 vs 784 for pixels) make kNN/SVM somewhat slower but stay manageable.
+
+**How it works**
+The sweep's three clear patterns:
+1. **Smaller cells win** (4×4 ≫ 7×7). Fine edge detail is what separates classes at 28×28.
+2. **Block normalisation helps** (2×2 > 1×1 by 2–3 points). Normalising over neighbouring cells makes the
+   gradients robust to local contrast.
+3. **More orientation bins help a little** (12 > 9 > 6). Finer angle resolution separates e.g. sleeves from torso edges.
+
+**Files touched**
+- `src/config.py`, `results/hog_sweep.csv`
+
+**Concepts worth learning**
+- HOG: per cell, a histogram of gradient directions weighted by gradient strength; blocks of cells are normalised and concatenated.
+- Feature dimension for 28×28, cell c, block b, o bins: ((28/c) − b + 1)² × b² × o, e.g. 6² × 4 × 12 = 1,728.
+
+**Revisit if**
+Phases 03–04 show HOG is far slower than pixels for kNN/SVM. Then o9_p4_c2 is the documented fallback (−0.35 points).
+
+---
+
+### D-018 — Harness details: best = strict max val acc, sequential CV, test-log warning
+- **Date:** 2026-10-24
+- **Phase:** v1/02 — Features & Evaluation Harness
+- **Status:** Active
+- **Type:** algorithm
+
+**Context**
+Building `experiment.py` raised a few small choices that phases 03–05 rely on.
+
+**Decision**
+1. `tune_on_val` returns the combo with the **highest val accuracy**. On an exact tie, the first combo in
+   `ParameterGrid` order wins. D-005's "within 0.3 points → prefer the simpler model" is **not automated**: if the top
+   two are that close, the phase owner may pick the simpler one *by hand* and must log it here.
+2. `cross_validate_best` runs folds **one after another** (`n_jobs=1`), because RF/kNN already use `N_JOBS=4` inside.
+   Running both in parallel would start 16 processes and could run out of memory on 8 GB.
+3. `final_test_run` always runs, but `_log_test_use` prints a **WARNING** when an experiment already appears in
+   `test_log.csv`. Re-runs are visible, never hidden.
+4. `utils.display_path()` prints paths relative to the repo, or in full when outside it (e.g. features on Google Drive in Colab).
+   Without it, saving outside the repo crashed while printing the message (found by the harness check).
+5. `stratified_subset()` is shared by SVM tuning and CV subsets, so both use the same seeded, class-balanced sampling.
+
+**Alternatives considered**
+| Option | Why not chosen |
+|---|---|
+| Automatic "simplest within 0.3 points" rule | Needs a per-model definition of "simpler"; a logged human choice is clearer |
+| Block a second `final_test_run` | A real bug fix may need a re-run; a warning plus a mandatory explanation is more honest |
+| Parallel CV (`n_jobs=-1`) | Memory risk on 8 GB with models that are already parallel |
+
+**How it works**
+`tune_on_val` gets data only via `features.get_features(kind, "train" | "val")`. The scratch check replaced
+`get_features` with a version that raises on `"test"`, and tuning ran fine, which proves it never reads test.
+The same check confirmed that the scaler's learned mean equals the training rows' mean, not the val mean.
+
+**Files touched**
+- `src/experiment.py`, `src/utils.py`, `src/data.py`, `src/features.py`, `docs/module-interfaces.md`
+
+**Revisit if**
+Phase 2's CNN needs a different training loop. It should still finish by calling `evaluate()` and logging the test use.
+
+---
+
+### D-019 — Test features are only built inside final_test_run()
+- **Date:** 2026-10-24
+- **Phase:** v1/02 — Features & Evaluation Harness
+- **Status:** Active
+- **Type:** edge-case
+
+**Context**
+The phase 02 plan said to cache features "for all 4 splits". But AGENTS.md rule 1 says nothing may call
+`get_features(..., "test")` outside `final_test_run()`.
+
+**Decision**
+Notebook 02 caches train / val / trainval only. The test cache is created automatically the first time
+`final_test_run()` asks for it (pixels: instant; HOG: ~3 s).
+
+**Why**
+HOG and flattening are stateless, so building test features early would not leak anything. But keeping the rule
+**absolute** ("test is read in exactly one function") makes it trivial to audit, both for the professor and for
+reviewers of teammates' PRs. The cost is a few seconds in phase 03.
+
+**Files touched**
+- `notebooks/02_features.ipynb`, phase-02 done criteria
+
+**Revisit if**
+Never for v1.

@@ -16,7 +16,7 @@ By the end of this phase, Random Forest, LinearSVC and RBF SVM are tuned on val 
 sets. All 8 core experiments (plus the dummy and LinearSVC) are finished.
 
 ## Previous phase summary
-<!-- Filled by the owner at phase start (AGENTS.md §6.1): copy the essentials of phase 03's \"Phase summary\" here. -->
+<!-- Filled by the owner at phase start (AGENTS.md §6.1): copy the essentials of phase 03's "Phase summary" here. -->
 
 ## In scope — exact features
 1. **Model factories** — `src/models_tree_kernel.py`
