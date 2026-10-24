@@ -125,7 +125,7 @@ Any assistant is fine (Claude Code, Antigravity, Cursor, Copilot, …). You are 
 able to explain it at the viva.
 - **Claude Code** reads `CLAUDE.md` (which includes `AGENTS.md`) automatically. You can run `/phase-start v1/0N`.
 - **Other tools:** start every session with a prompt like:
-  > Read `AGENTS.md`, `docs/progress.md` and `docs/phases/v1/phase-0N-<slug>.md`, plus the docs that phase file lists
+  > Read `AGENTS.md`, `CONTRIBUTING.md`, `docs/progress.md` and `docs/phases/v1/phase-0N-<slug>.md`, plus the docs that phase file lists
   > under "Relevant docs". Summarise the tasks back to me, then do **only task 0N.1**. Follow the no-leakage rules
   > and the function names in `docs/module-interfaces.md` exactly. Ask me if anything is unclear.
 - Do one task at a time, check its output yourself, then commit.

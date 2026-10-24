@@ -6,6 +6,9 @@ with error analysis that motivates the Phase 2 CNN. Built by a 5-person student 
 ## Shared rules for all contributors and agents
 @AGENTS.md
 
+## Step-by-step contributor workflow and troubleshooting
+@CONTRIBUTING.md
+
 ## Profile
 **profile: lean**: no tests, CI, Docker or devops files committed. Throwaway checks go in `.scratch/` (gitignored), run with `python .scratch/<file>.py`.
 
