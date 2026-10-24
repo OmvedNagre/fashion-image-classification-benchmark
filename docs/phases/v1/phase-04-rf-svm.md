@@ -53,7 +53,7 @@ From v1/03 (PR #1 by Rajat, merged 2026-10-24):
 - `decisions.md` → D-005, D-008
 
 ## Tasks
-- [ ] 04.1 — `src/models_tree_kernel.py` with factories + grids → `feat(models): add random forest and SVM factories`
+- [x] 04.1 — `src/models_tree_kernel.py` with factories + grids → `feat(models): add random forest and SVM factories`
 - [ ] 04.2 — RF tuning + final test (both features) + importance heatmap → `feat(treekernel): tune and evaluate random forest`
 - [ ] 04.3 — LinearSVC tuning + final test (both features) → `feat(treekernel): tune and evaluate linear SVM`
 - [ ] 04.4 — RBF SVM subset tuning + final 60k refit + test (both features) → `feat(treekernel): tune and evaluate RBF SVM`
