@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Owner | _TBD_ (set when the phase starts) |
-| Status | not-started |
+| Owner | Rajat Srivastav |
+| Status | in-progress |
 | Branch | `phase/v1-03-linear-knn` |
 | Depends on | Phase v1/02 |
 | PRD features | F-09 |
