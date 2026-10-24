@@ -59,7 +59,7 @@ From v1/01 (merged 2026-10-24):
 - [x] 02.1 — `extract_pixels`, `extract_hog`, `get_features`, `get_labels` with disk cache → `feat(features): add pixel and HOG extractors with caching`
 - [x] 02.2 — `run_hog_sweep()`, run it, set `HOG_PARAMS`, log the decision → `feat(features): add HOG parameter sweep and select config`
 - [x] 02.3 — `src/evaluate.py` → `feat(eval): add shared evaluation harness`
-- [ ] 02.4 — `src/experiment.py` (`tune_on_val`, `final_test_run`, `cross_validate_best`, test log) → `feat(eval): add tuning, final test run and CV helpers`
+- [x] 02.4 — `src/experiment.py` (`tune_on_val`, `final_test_run`, `cross_validate_best`, test log) → `feat(eval): add tuning, final test run and CV helpers`
 - [ ] 02.5 — `02_features.ipynb`: sweep table, dimension/time discussion, HOG visualisation, why scaling matters per model → `feat(features): add features notebook`
 - [ ] 02.6 — Update docs touched by this phase → `docs(phase-02): update docs and decisions`
 

@@ -16,6 +16,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 from src import config
+from src.utils import display_path
 from src.data import load_splits
 
 KINDS = ("pixels", "hog")
@@ -98,7 +99,7 @@ def get_features(kind: str, split: str) -> np.ndarray:
 
     path.parent.mkdir(parents=True, exist_ok=True)
     np.save(path, features)
-    print(f"cached {path.relative_to(config.ROOT)} {features.shape}")
+    print(f"cached {display_path(path)} {features.shape}")
     return features
 
 
@@ -159,5 +160,5 @@ def run_hog_sweep(grid: dict = None) -> pd.DataFrame:
     table = pd.DataFrame(rows)
     config.HOG_SWEEP_PATH.parent.mkdir(parents=True, exist_ok=True)
     table.to_csv(config.HOG_SWEEP_PATH, index=False)
-    print(f"saved {config.HOG_SWEEP_PATH.relative_to(config.ROOT)}")
+    print(f"saved {display_path(config.HOG_SWEEP_PATH)}")
     return table

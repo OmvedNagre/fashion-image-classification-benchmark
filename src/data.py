@@ -10,6 +10,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 from src import config
+from src.utils import display_path
 
 IMAGE_HEADER_BYTES = 16  # IDX image files start with magic, count, rows, cols (4 bytes each)
 LABEL_HEADER_BYTES = 8   # IDX label files start with magic, count
@@ -177,7 +178,7 @@ def _load_or_create_val_indices(y_train_full: np.ndarray, verbose: bool = True) 
         val_indices = _make_val_indices(y_train_full)
         path.parent.mkdir(parents=True, exist_ok=True)
         np.save(path, val_indices)
-        print(f"created {path.relative_to(config.ROOT)}")
+        print(f"created {display_path(path)}")
     _check_val_indices(val_indices, y_train_full)
     if verbose:
         print(f"val_indices.npy MD5: {_md5(path)}")

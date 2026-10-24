@@ -22,6 +22,7 @@ Modules read these at call time (`config.X` inside functions), so a scratch chec
 | `Timer(label)` | str | context manager with `.seconds` | `with Timer("fit") as t: ...` prints `fit: 12.3s` |
 | `save_fig(fig, name)` | matplotlib Figure, filename without extension | `Path` | Saves `FIGURES_DIR/{name}.png` at 300 dpi, creating the folder if needed |
 | `save_json(obj, path)` | dict, `Path` | None | Writes indented JSON, converting NumPy numbers/arrays; creates the folder |
+| `display_path(path)` | `Path` | str | Path relative to the repo for messages; full path if outside the repo (e.g. Google Drive) |
 
 ## `src/data.py`
 | Function | Takes | Returns | Errors |
@@ -60,6 +61,7 @@ Default tuning grids live next to these functions as constants (e.g. `KNN_GRID`)
 | `tune_on_val(name, make_fn, grid, kind, train_subset=None)` | model name, factory, grid dict, feature kind, optional subset size | `(best_params: dict, table: DataFrame)` | Writes `{name}_{kind}_val.json`. **Never loads test.** |
 | `final_test_run(name, make_fn, params, kind)` | as above + chosen params | metrics dict (`data-formats.md` §8) | Fits on `trainval`, calls `evaluate()`, appends to `test_log.csv` |
 | `cross_validate_best(name, make_fn, params, kind, subset=None, folds=5)` | as above | dict (`data-formats.md` §9) | Stratified K-fold on `trainval` (or a stratified subset). Writes `{name}_{kind}_cv.json` |
+| `stratified_subset(X, y, size)` | arrays, int | `(X_sub, y_sub)` | Class-balanced subset, seed 42, original row order (used for the SVM tuning subset and CV subset) |
 
 ## `src/evaluate.py`
 | Function | Takes | Returns | Notes |

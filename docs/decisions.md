@@ -30,6 +30,7 @@ Rules:
 | D-015 | 2026-10-24 | v1/01 | EDA design: train-only, 5k subsample, PCA→50 before t-SNE, notebook import cell | Active |
 | D-016 | 2026-10-24 | v1/02 | HOG sweep proxy = SGD linear SVM with a fixed 30-epoch budget | Active |
 | D-017 | 2026-10-24 | v1/02 | Final HOG config: orientations 12, cells 4×4, blocks 2×2 (1,728-d) | Active |
+| D-018 | 2026-10-24 | v1/02 | Harness details: best = strict max val acc, sequential CV, test-log warning | Active |
 
 ---
 
@@ -767,3 +768,44 @@ The sweep's three clear patterns:
 
 **Revisit if**
 Phases 03–04 show HOG is far slower than pixels for kNN/SVM. Then o9_p4_c2 is the documented fallback (−0.35 points).
+
+---
+
+### D-018 — Harness details: best = strict max val acc, sequential CV, test-log warning
+- **Date:** 2026-10-24
+- **Phase:** v1/02 — Features & Evaluation Harness
+- **Status:** Active
+- **Type:** algorithm
+
+**Context**
+Building `experiment.py` raised a few small choices that phases 03–05 rely on.
+
+**Decision**
+1. `tune_on_val` returns the combo with the **highest val accuracy**. On an exact tie, the first combo in
+   `ParameterGrid` order wins. D-005's "within 0.3 points → prefer the simpler model" is **not automated**: if the top
+   two are that close, the phase owner may pick the simpler one *by hand* and must log it here.
+2. `cross_validate_best` runs folds **one after another** (`n_jobs=1`), because RF/kNN already use `N_JOBS=4` inside.
+   Running both in parallel would start 16 processes and could run out of memory on 8 GB.
+3. `final_test_run` always runs, but `_log_test_use` prints a **WARNING** when an experiment already appears in
+   `test_log.csv`. Re-runs are visible, never hidden.
+4. `utils.display_path()` prints paths relative to the repo, or in full when outside it (e.g. features on Google Drive in Colab).
+   Without it, saving outside the repo crashed while printing the message (found by the harness check).
+5. `stratified_subset()` is shared by SVM tuning and CV subsets, so both use the same seeded, class-balanced sampling.
+
+**Alternatives considered**
+| Option | Why not chosen |
+|---|---|
+| Automatic "simplest within 0.3 points" rule | Needs a per-model definition of "simpler"; a logged human choice is clearer |
+| Block a second `final_test_run` | A real bug fix may need a re-run; a warning plus a mandatory explanation is more honest |
+| Parallel CV (`n_jobs=-1`) | Memory risk on 8 GB with models that are already parallel |
+
+**How it works**
+`tune_on_val` gets data only via `features.get_features(kind, "train" | "val")`. The scratch check replaced
+`get_features` with a version that raises on `"test"`, and tuning ran fine, which proves it never reads test.
+The same check confirmed that the scaler's learned mean equals the training rows' mean, not the val mean.
+
+**Files touched**
+- `src/experiment.py`, `src/utils.py`, `src/data.py`, `src/features.py`, `docs/module-interfaces.md`
+
+**Revisit if**
+Phase 2's CNN needs a different training loop. It should still finish by calling `evaluate()` and logging the test use.
