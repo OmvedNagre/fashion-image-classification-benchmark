@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Owner | Rajat Srivastav |
-| Status | review |
+| Status | done |
 | Branch | `phase/v1-03-linear-knn` |
 | Depends on | Phase v1/02 |
 | PRD features | F-09 |
@@ -81,7 +81,8 @@ From v1/02 (merged 2026-10-24):
 - **Key results:** Dummy val/test 10% for both features. LR C=0.01: pixels val 86.42%, test 84.72%; HOG val 89.27%, test 88.86%. kNN k=3/distance: pixels Manhattan val 87.47%, test 86.11%; HOG Euclidean val 87.28%, test 86.31%. Pixel LR is near the approximate ~84% target; pixel kNN is 0.11 percentage points above 86%, consistent with the approximate ~85–86% range and validation-selected Manhattan distance. No parameters were changed in response to test scores.
 - **Key decisions:** D-020 raises the LR iteration cap to 5,000 after convergence warnings; all rerun grid fits converged. D-021 reuses stored results on notebook restart and stops if metrics are missing for an already logged test. D-022 plots standardised coefficients via a trainval-only refit. D-023 discloses overlap between LR final fits and the tail of the convergence-only validation rerun; selected C values came from complete initial validation sweeps and were confirmed unchanged.
 - **Known limitations:** Single holdout validation; LR optimum may lie beyond the smallest prescribed C. kNN prediction is slow (pixels ~6,927 ms/1,000; HOG ~731 ms/1,000) and stores ~189/415 MB respectively. Timings vary with hardware/background load; LR timings include concurrent validation load (D-023). Weight maps are discriminative templates, not causal explanations. Direct upstream push was denied, so the branch is published from Rajat's fork for review.
-- **Next phase should know:** Wait for this PR to merge. Preserve the six test results and append-only log; notebook restarts load them instead of retesting. Use the unchanged split/HOG configuration and shared harness. Keep scaling in Pipelines; use the Phase 04 documented SVM tuning subset. No Phase 04 or Phase 05 implementation was added.
+- **Post-merge (lead, D-025):** weight-map code moved from `models_linear.py` into notebook 03; D-020–D-024 expanded to the full template.
+- **Next phase should know:** Merged 2026-10-24 (PR #1). Preserve the six test results and append-only log; notebook restarts load them instead of retesting. Use the unchanged split/HOG configuration and shared harness. Keep scaling in Pipelines; use the Phase 04 documented SVM tuning subset. No Phase 04 or Phase 05 implementation was added.
 
 ## Next phase preview
 Timing handoff (D-024): both LR test JSONs set `timing_comparable=false`. Phase 05 must preserve their accuracy results but use NaN for both summary timing columns and exclude them from speed plots/rankings. The raw measurements remain available for provenance; no test evaluation was repeated.

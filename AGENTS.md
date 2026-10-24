@@ -59,7 +59,9 @@ These are what the professor will check. Breaking any of them invalidates our re
 4. **EDA uses the train split only.**
 5. **Never change** `SEED = 42`, the split file `data/splits/val_indices.npy`, or the tuning grids without a PR
    discussion and a new entry in `docs/decisions.md`.
-6. Every run of `final_test_run()` appends a row to `results/test_log.csv`. Don't delete or edit that file by hand.
+6. **Finish all tuning for a model before running its `final_test_run()`.** Never run tuning and testing at the same time
+   (e.g. in two terminals). Otherwise the audit trail shows a test before tuning ended (see D-023).
+7. Every run of `final_test_run()` appends a row to `results/test_log.csv`. Don't delete or edit that file by hand.
    If you must re-run a test evaluation (e.g. after fixing a bug), explain why in `docs/decisions.md` and the PR.
 
 ## 5. Coding rules (keep it simple)
@@ -112,12 +114,36 @@ git push -u origin phase/v1-0N-<slug>
 ```
 Small, honest commits matter: commit history shows individual contribution.
 
-### 6.3 Log decisions as you go
-Whenever you choose something that isn't already written in the docs (for example a parameter value, a workaround for slowness,
-a bug you found and how you handled it, or a deviation from a doc), add an entry to `docs/decisions.md` using the template
-at the top of that file, and add a row to its Index table. Write it so a classmate could learn from it: what, why, what
-you rejected, and how it works. If you change a function or file format, update `module-interfaces.md` /
-`data-formats.md` in the same commit.
+### 6.3 Log decisions as you go (mandatory format)
+**When:** whenever you choose something that isn't already written in the docs. Examples: a parameter value, a workaround for
+slowness, a bug you found and how you handled it, a re-run of a test evaluation, or any deviation from a doc. Log it **in
+the same commit** as the change, not in a batch at the end.
+
+**Where and how:**
+1. Append the entry at the **bottom** of `docs/decisions.md` with the **next free number** (`D-0NN`). Never renumber,
+   edit the meaning of, or delete an old entry. If a decision changes, add a new one and mark the old one
+   `Superseded by D-0NN`.
+2. Add a matching row to the **Index** table at the top: `| D-0NN | date | v1/0N | short title | Active |`.
+3. Copy the **Entry template** from the top of `decisions.md`. **Every heading is required:**
+   ```
+   ### D-0NN — <short title>
+   - **Date:** YYYY-MM-DD
+   - **Phase:** v1/0N — <phase name>
+   - **Status:** Active | Superseded by D-0NN | Reverted
+   - **Type:** stack | architecture | data | api | algorithm | edge-case | tooling | assumption
+   **Context**                 what problem came up, what constraints mattered
+   **Decision**                what you chose, in 1–2 sentences
+   **Alternatives considered** a table: | Option | Why not chosen |  (at least one real alternative)
+   **Why**                     the reasoning
+   **How it works**            step by step in plain language, as if teaching a classmate; include numbers/results
+   **Files touched**           each file and what changed
+   **Concepts worth learning** terms the decision relies on, one line each
+   **Revisit if**              when this should be reconsidered
+   ```
+4. Write for a learner, not a reviewer: someone reading only `decisions.md` after the project should understand what was
+   built and why. Entries with only Context / Decision / Why are **incomplete** and will be sent back in review.
+
+If you change a function or file format, also update `module-interfaces.md` / `data-formats.md` in the same commit.
 
 ### 6.4 Close your phase
 1. Go through **Done criteria** in your phase file. Every box must be true. Run every step in **How to verify**.
@@ -149,6 +175,8 @@ you rejected, and how it works. If you change a function or file format, update 
   "Parked ideas" in `docs/progress.md` and mention it to the human.
 - **If something is unclear or the docs conflict, stop and ask the human.** Don't guess.
 - Never touch the test set outside `final_test_run()`. Never change the seed, split file or grids on your own.
+- **Log every decision you make in `docs/decisions.md` in the full format of §6.3** (all headings, next free D-number,
+  Index row), in the same commit as the change. If you aren't sure whether something counts as a decision, log it.
 - Don't add dependencies, tests, CI, Docker or config frameworks.
 - Keep the code at a level a second-year CS student can explain in a viva. Prefer obvious code over clever code.
 - Use the exact commit messages from the phase file, and push after each commit.

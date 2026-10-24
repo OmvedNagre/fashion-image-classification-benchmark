@@ -72,7 +72,8 @@ fashion-image-classification-benchmark/
 Rules for folders:
 - `src/` has no notebook-only code and no hard-coded paths outside `config.py`.
 - `notebooks/` holds no model or feature logic beyond a few glue lines. If code is reused, it moves to `src/`.
-- `results/` is written only by code, never by hand.
+- `results/` is written only by code, never by hand. The one exception: **adding** annotation fields to a result JSON
+  (never changing or removing values), with a `decisions.md` entry (e.g. `timing_comparable`, D-024/D-025).
 
 ## 5. Modules and responsibilities
 | Module | Owns | Depends on | Must not |

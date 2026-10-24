@@ -1,7 +1,7 @@
 # Progress
 
-**Current phase:** v1/03 — Dummy, Logistic Regression & kNN (`review`)
-**Branch:** `phase/v1-03-linear-knn`
+**Current phase:** v1/04 — Random Forest & SVM (`not-started`)
+**Branch:** —
 **Profile:** lean
 
 ## Phases
@@ -10,7 +10,7 @@
 |---|---|---|---|---|---|---|
 | 01 | [Foundation & Data](phases/v1/phase-01-foundation.md) | Rajdeep | done | phase/v1-01-foundation | 2026-10-24 | 2026-10-24 |
 | 02 | [Features & Evaluation Harness](phases/v1/phase-02-features-harness.md) | Rajdeep | done | phase/v1-02-features-harness | 2026-10-24 | 2026-10-24 |
-| 03 | [Dummy, Logistic Regression & kNN](phases/v1/phase-03-linear-knn.md) | Rajat Srivastav | review | phase/v1-03-linear-knn | 2026-10-24 | |
+| 03 | [Dummy, Logistic Regression & kNN](phases/v1/phase-03-linear-knn.md) | Rajat Srivastav | done | phase/v1-03-linear-knn | 2026-10-24 | 2026-10-24 |
 | 04 | [Random Forest & SVM](phases/v1/phase-04-rf-svm.md) | TBD | not-started | phase/v1-04-rf-svm | | |
 | 05 | [Results, Error Analysis & README](phases/v1/phase-05-results-analysis.md) | TBD | not-started | phase/v1-05-results-analysis | | |
 
@@ -22,6 +22,10 @@ each phase starts. Full workflow: [`AGENTS.md`](../AGENTS.md) §6.
 
 ## Session log
 <!-- Newest first. 2–4 lines per session. Keep only the last ~10 sessions; older ones are in git history. -->
+### 2026-10-24 (v1/03 review + merge, lead)
+- Done: audited PR #1 (all 6 test results recomputed from real labels; leak-free); approved and merged. Post-merge fixes (D-025): weight-map plot moved to notebook, D-020–D-024 expanded, decision-log format made mandatory for all agents, "finish tuning before testing" rule.
+- Next: v1/04 (RF + SVM). Add teammates as GitHub collaborators so PRs come from repo branches, not forks.
+
 ### 2026-10-24 (phase v1/03)
 - Done: all 6 tasks, six validation/test pairs and unique audit entries, four validation curves, LR weight maps and fully executed notebook. Test accuracy: Dummy 10%; LR pixels/HOG 84.72%/88.86%; kNN pixels/HOG 86.11%/86.31%.
 - Verified: exact grids/split, JSON schemas, 10k predictions/confusion totals, notebook restart without new test use. Decisions D-020–D-023 cover convergence, result reuse, weight maps and LR timing contention.
