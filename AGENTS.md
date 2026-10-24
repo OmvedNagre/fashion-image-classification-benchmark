@@ -74,6 +74,12 @@ These are what the professor will check. Breaking any of them invalidates our re
 **Notebooks**
 - One notebook per phase (`notebooks/0N_*.ipynb`). They call `src/` functions, show plots and contain the written
   explanation (markdown cells). No model or feature logic is defined inside notebooks.
+- Every notebook's first code cell makes `src` importable (copy it from `notebooks/01_data_eda.ipynb`):
+  ```python
+  import sys, pathlib
+  ROOT = pathlib.Path.cwd() if (pathlib.Path.cwd() / "src").exists() else pathlib.Path.cwd().parent
+  sys.path.insert(0, str(ROOT))
+  ```
 - Before committing a notebook: **Kernel → Restart & Run All**, and make sure there are no errors. Commit it *with* outputs.
 - Mark slow cells with a markdown note giving the expected runtime (e.g. "⏱ ~15 min").
 

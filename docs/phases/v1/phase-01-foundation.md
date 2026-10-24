@@ -21,7 +21,7 @@ None. This is the first phase. The repo contains only the docs.
 ## In scope — exact features
 1. **Project skeleton + environment**
    - Acceptance: folders from `architecture.md` §4 exist. `requirements.txt` pins numpy, pandas, scikit-learn,
-     scikit-image, matplotlib, ipykernel. `.gitignore` covers `data/raw/`, `data/processed/`, `features/`.
+     scikit-image, matplotlib, ipykernel. `.gitignore` covers `data/raw/` and `features/` (no `data/processed/`, see D-014).
      The README has working setup steps: conda env with Python 3.12, pip install, choosing the kernel in VS Code, plus a Colab fallback.
 2. **Config + utils**
    - Acceptance: `config.py` and `utils.py` match `module-interfaces.md`. `save_fig` writes a 300 dpi PNG.
@@ -58,7 +58,7 @@ None. This is the first phase. The repo contains only the docs.
 - [x] 01.4 — `run_sanity_checks()` → `feat(data): add dataset sanity checks`
 - [x] 01.5 — Stratified split, `load_splits()`, commit `val_indices.npy`, record its MD5 in the README → `feat(data): add fixed stratified train/val split`
 - [x] 01.6 — `01_data_eda.ipynb` + EDA figures + hard-classes paragraph → `feat(eda): add exploratory data analysis notebook`
-- [ ] 01.7 — Update docs touched by this phase (decisions, progress) → `docs(phase-01): update docs and decisions`
+- [x] 01.7 — Update docs touched by this phase (decisions, progress) → `docs(phase-01): update docs and decisions`
 
 ## Done criteria
 - [ ] Fresh clone + README setup + run notebook 01 works with no errors

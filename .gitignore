@@ -6,7 +6,6 @@
 
 # big files rebuilt by code (see docs/decisions.md D-009)
 data/raw/
-data/processed/
 features/
 
 # python / jupyter / OS clutter

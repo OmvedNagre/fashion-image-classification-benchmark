@@ -19,6 +19,7 @@ conda activate fmnist
 pip install -r requirements.txt
 ```
 Open the folder in VS Code, open any notebook in `notebooks/`, click **Select Kernel** (top right) and choose **fmnist**.
+Also run **Python: Select Interpreter → fmnist** (Cmd/Ctrl+Shift+P) so VS Code stops underlining `numpy`/`sklearn` imports in `src/`.
 
 No conda? Use `python3.12 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`.
 
