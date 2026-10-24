@@ -16,7 +16,7 @@ By the end of this phase, the dummy baseline, Logistic Regression and kNN are tu
 both pixels and HOG (6 test JSONs). Validation curves and LR weight maps explain how these models behave.
 
 ## Previous phase summary
-<!-- Filled by the owner at phase start (AGENTS.md §6.1): copy the essentials of phase 02's \"Phase summary\" here. -->
+<!-- Filled by the owner at phase start (AGENTS.md §6.1): copy the essentials of phase 02's "Phase summary" here. -->
 
 ## In scope — exact features
 1. **Model factories** — `src/models_linear.py`

@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Owner | _TBD_ (set when the phase starts) |
-| Status | not-started |
+| Owner | Rajdeep |
+| Status | in-progress |
 | Branch | `phase/v1-02-features-harness` |
 | Depends on | Phase v1/01 |
 | PRD features | F-05, F-06, F-07, F-08, S-02 |
@@ -17,7 +17,15 @@ val and justified by a sweep table. One shared, leak-proof harness (`tune_on_val
 exists and is verified, so phases 03 and 04 only need to plug in models.
 
 ## Previous phase summary
-<!-- Filled by the owner at phase start (AGENTS.md §6.1): copy the essentials of phase 01's \"Phase summary\" here. -->
+From v1/01 (merged 2026-10-24):
+- `src/data.load_splits()` returns the fixed split: train 54,000 / val 6,000 (600 per class) / test 10,000, as float32 in [0,1],
+  shape (N,28,28). Split file `data/splits/val_indices.npy`, MD5 `54ff6b78b27109cdfc3ebe7204040a07`. Never re-split.
+- `src/config.py` holds every constant (`SEED`, `N_JOBS`, `SVM_TUNE_SUBSET`, paths). `HOG_PARAMS` is a **placeholder** that this phase replaces.
+- `src/utils.py`: `set_seed`, `Timer`, `save_fig(fig, name)` → `results/figures/{name}.png`.
+- Data is clean: official MD5s match; 0 duplicates; 0 test images in train.
+- EDA (train only): Shirt / Coat / Pullover are nearly identical in pixel space (mean-image cosine ≈ 0.98), so Shirt is the expected
+  hardest class. PCA: 84 comps = 90% variance. Worth checking whether HOG separates the tops better.
+- Notebooks start with the `sys.path` cell from notebook 01 (AGENTS.md §5). No `data/processed/` cache (D-014).
 
 ## In scope — exact features
 1. **Pixel + HOG extraction with cache** (F-05)
