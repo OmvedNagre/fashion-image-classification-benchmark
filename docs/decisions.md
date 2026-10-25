@@ -1300,5 +1300,17 @@ can't have influenced the rule.
 - **Learning curves:** more training data usually raises accuracy, so a model trained on 10k is handicapped against one on 54k.
 - **Pre-registration:** fixing the rule before seeing the numbers it will be applied to, so the outcome can't steer it.
 
+**Result (added after the run, rule unchanged)**
+Run on 2026-10-25 (notebook 04 §6, Apple M3), after the rule above was committed in f76e192:
+
+| Experiment | Val acc, 10k-subset model | Val acc, 54k-train model | 54k fit |
+|---|---|---|---|
+| rbf_svm_pixels | 0.8793 | **0.9082** | 198 s |
+| rbf_svm_hog | 0.8867 | **0.9157** | 367 s |
+
+New val ranking: **rbf_svm_hog 0.9157** > rbf_svm_pixels 0.9082 > logreg_hog 0.8927 > linear_svm_hog 0.8900. The winner is
+rbf_svm_hog by 2.3 points over the best non-RBF model, far more than the ~±0.4-point val noise. The 10k subset had cost RBF
+about 3 points of val accuracy. `test_log.csv` and every existing metrics JSON are byte-identical (SHA-256 checked).
+
 **Revisit if**
 Another subset-tuned model is added (e.g. a Phase 2 model tuned on a subset), or the full-train refit doesn't fit in memory.

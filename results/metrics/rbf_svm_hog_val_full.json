@@ -1,0 +1,15 @@
+{
+ "experiment": "rbf_svm_hog",
+ "model": "rbf_svm",
+ "features": "hog",
+ "split": "val",
+ "train_rows": 54000,
+ "params": {
+  "C": 10,
+  "gamma": "scale"
+ },
+ "fit_s": 366.52,
+ "val_acc": 0.9157,
+ "val_macro_f1": 0.9155,
+ "timestamp": "2026-10-25T17:45:24"
+}

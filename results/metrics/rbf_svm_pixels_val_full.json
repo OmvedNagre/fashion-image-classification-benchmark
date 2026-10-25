@@ -1,0 +1,15 @@
+{
+ "experiment": "rbf_svm_pixels",
+ "model": "rbf_svm",
+ "features": "pixels",
+ "split": "val",
+ "train_rows": 54000,
+ "params": {
+  "C": 10,
+  "gamma": 0.001
+ },
+ "fit_s": 198.22,
+ "val_acc": 0.9082,
+ "val_macro_f1": 0.9078,
+ "timestamp": "2026-10-25T17:36:51"
+}

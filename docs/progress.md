@@ -22,6 +22,11 @@ each phase starts. Full workflow: [`AGENTS.md`](../AGENTS.md) §6.
 
 ## Session log
 <!-- Newest first. 2–4 lines per session. Keep only the last ~10 sessions; older ones are in git history. -->
+### 2026-10-25 (v1/04 merged + fair val for RBF, lead)
+- Merged PR #2 (v1/04 done). Found that RBF SVM's val score came from a 10k-subset model, unlike all others.
+- D-029, committed before running: refit RBF's chosen params on full 54k train, score on val, keep "best by val". Result: rbf_svm_hog 0.9157 > rbf_svm_pixels 0.9082 > logreg_hog 0.8927. No test use.
+- Next: v1/05 (owner TBD) starts from the updated main.
+
 ### 2026-10-25 (phase v1/04)
 - Done: all 6 tasks of v1/04. Built RF, LinearSVC, and RBF SVM models on pixels and HOG (6 new validation and test JSONs). 12/12 experiments completed in test_log.csv without leakage. Highest test accuracy: RBF SVM HOG (91.08%) and RBF SVM Pixels (89.70% test acc); LinearSVC HOG achieved 88.98% (+5.2 pts over pixels). Generated all tuning curves and 28x28 RF pixel importance heatmap.
 - Verified: notebook 04 runs top-to-bottom and reproduces analysis in <15s without test re-evaluation. Decisions D-026 (LinearSVC dual/primal convergence) and D-027 (RBF SVM 10k subset tuning and full 60k refit scaling) documented.
