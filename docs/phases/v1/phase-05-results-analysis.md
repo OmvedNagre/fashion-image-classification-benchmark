@@ -39,10 +39,10 @@ From v1/04 (PR #2 by Tanmay, merged 2026-10-25, review fixes in D-028):
 3. **Stability check** (F-11)
    - Acceptance: `pick_best_experiment()` picks by **val** accuracy. `cross_validate_best()` writes `_cv.json` with mean ± std.
      If it's an SVM, it uses a 10k stratified subset, documented.
-   - Current val ranking: logreg_hog 0.8927 > linear_svm_hog 0.8900 > rbf_svm_hog = rf_pixels 0.8867, so the rule picks
-     **logreg_hog**, although rbf_svm_hog has the best test score (91.08%). RBF SVM val scores come from 10k-image models
-     (D-027, D-028), so they understate it. Apply the rule as written and explain this caveat; changing the rule needs the
-     lead's approval and a decision entry.
+   - **Comparable val scores (D-029):** RBF SVM was tuned on a 10k subset, so its tuning val score isn't comparable. For
+     `rbf_svm_*`, use `val_acc` from `rbf_svm_{kind}_val_full.json` (same params refit on all 54k train, scored on val).
+     Every other experiment uses `best_val_acc` from its `_val.json`. The highest of these wins, whichever model it is.
+     Mention in the write-up that the top val scores are within ~±0.4 points (6k val images) of each other.
 4. **Error analysis** (F-13)
    - Acceptance: normalised confusion matrix of the best model, a top-5 confused-pairs table, a misclassified-image grid for
      each pair, and the agreement between the two best models (same mistakes?). A written explanation of why handcrafted
