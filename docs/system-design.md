@@ -67,7 +67,9 @@ Notes:
 
 ### Flow D: Results (phase 05)
 `results.py` reads every `*_test.json` and builds `summary.csv` and the comparison plots.
-The "best model" for error analysis and 5-fold CV is chosen by **val accuracy, not test accuracy**.
+The "best model" for error analysis and 5-fold CV is chosen by **val accuracy, not test accuracy**. All val scores must come
+from models trained on the full 54k train split: for subset-tuned RBF SVM that's `_val_full.json`, written by
+`experiment.full_train_val_score()` (D-029). Current best: `rbf_svm_hog` (val 0.9157).
 
 ## 3. Leakage controls (the core of this design)
 | Possible loophole | How we close it |
@@ -75,7 +77,7 @@ The "best model" for error analysis and 5-fold CV is chosen by **val accuracy, n
 | Scaler fit on val/test | `StandardScaler` lives inside the sklearn `Pipeline`, so `fit()` only ever sees training rows |
 | Hyperparameters picked on test | `tune_on_val()` only loads `train` and `val`, and the test arrays are never passed in |
 | HOG params picked on test | The sweep scores on val only |
-| "Best model" picked on test | Selection uses val accuracy, recorded in the `_val.json` files |
+| "Best model" picked on test | Selection uses val accuracy, recorded in the `_val.json` files (`_val_full.json` for subset-tuned RBF SVM, D-029) |
 | EDA insights drawn from test | EDA runs on the train split only |
 | Different splits per person | Committed `val_indices.npy`, plus its checksum printed and documented |
 | Stale features after a param change | HOG params are encoded in the cache filename |
