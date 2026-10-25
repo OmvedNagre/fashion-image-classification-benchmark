@@ -61,6 +61,7 @@ Model files only build unfitted Pipelines and hold grids. Figures (e.g. the LR w
 | Function | Takes | Returns | Side effects |
 |---|---|---|---|
 | `tune_on_val(name, make_fn, grid, kind, train_subset=None)` | model name, factory, grid dict, feature kind, optional subset size | `(best_params: dict, table: DataFrame)` | Writes `{name}_{kind}_val.json`. **Never loads test.** |
+| `full_train_val_score(name, make_fn, params, kind)` | as above + chosen params | dict (`data-formats.md` §7) | Refits on the **full 54k train**, scores on val. For subset-tuned models (RBF SVM) so their val accuracy is comparable (D-029). Writes `{name}_{kind}_val_full.json`. **Never loads test.** |
 | `final_test_run(name, make_fn, params, kind)` | as above + chosen params | metrics dict (`data-formats.md` §8) | Fits on `trainval`, calls `evaluate()`, appends to `test_log.csv` |
 | `cross_validate_best(name, make_fn, params, kind, subset=None, folds=5)` | as above | dict (`data-formats.md` §9) | Stratified K-fold on `trainval` (or a stratified subset). Writes `{name}_{kind}_cv.json` |
 | `stratified_subset(X, y, size)` | arrays, int | `(X_sub, y_sub)` | Class-balanced subset, seed 42, original row order (used for the SVM tuning subset and CV subset) |
@@ -78,7 +79,7 @@ Model files only build unfitted Pipelines and hold grids. Figures (e.g. the LR w
 |---|---|---|---|
 | `load_all_metrics(split="test")` | `"val"\|"test"\|"cv"` | list of dicts | Reads `results/metrics/*_{split}.json` |
 | `build_summary()` | — | DataFrame | Writes `results/summary.csv` |
-| `pick_best_experiment()` | — | experiment id | Highest **val** accuracy |
+| `pick_best_experiment()` | — | experiment id | Highest **val** accuracy, using `_val_full.json` for subset-tuned experiments (D-029) |
 | `plot_pixels_vs_hog(df)` | summary df | Figure | RQ2 |
 | `plot_acc_vs_inference(df)` | summary df | Figure | RQ3 |
 | `plot_recall_heatmap(df)` | summary df | Figure | RQ4 |

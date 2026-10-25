@@ -42,6 +42,7 @@ Rules:
 | D-026 | 2026-10-25 | v1/04 | LinearSVC dual optimization and convergence behavior across feature sets | Active |
 | D-027 | 2026-10-25 | v1/04 | RBF SVM stratified 10k subset tuning and full 60k refit scaling | Active |
 | D-028 | 2026-10-25 | v1/04 | Review fixes: reproducible figures, test guard, runtime notes, val and timing caveats | Active |
+| D-029 | 2026-10-25 | v1/05 prep | Comparable val scores: refit subset-tuned RBF SVM on full train before choosing the best model | Active |
 
 ---
 
@@ -1243,3 +1244,73 @@ made on validation. Both were at risk, while the fixes are cheap and touch no re
 **Revisit if**
 Phase 05 decides to change the "best by val" rule because of the RBF subset caveat (that needs its own decision entry), or
 the team re-measures all timings on one machine.
+
+---
+
+### D-029 — Comparable val scores: refit subset-tuned RBF SVM on full train before choosing the best model
+- **Date:** 2026-10-25
+- **Phase:** v1/05 prep — decided by the lead after the PR #2 review, **written before the new run**
+- **Status:** Active
+- **Type:** algorithm
+
+**Context**
+Phase 05 picks the "best" experiment by validation accuracy (D-005, system-design §3). But the val scores weren't measured
+the same way. Every model's val score comes from a model trained on all 54k train images, except RBF SVM, which was tuned on
+a 10k subset to save time (D-005, D-027). A model trained on less data scores lower, so the rule was unfair to RBF SVM.
+The tuning-file ranking was logreg_hog 0.8927 > linear_svm_hog 0.8900 > rbf_svm_hog = rf_pixels 0.8867.
+**We noticed this after the test results were visible** (rbf_svm_hog has the best test accuracy, 91.08%). That is exactly
+why the rule below is fixed and committed *before* the new val scores exist.
+
+**Decision**
+Keep "best = highest val accuracy", but make every val score comparable: refit RBF SVM's already-chosen params (pixels: C=10,
+γ=0.001; HOG: C=10, γ='scale') once on the full 54k train split and score on the same 6k val. Phase 05 uses these numbers for
+`rbf_svm_*` and accepts whichever experiment then has the highest val accuracy, **including if it is still logreg_hog**.
+
+**Alternatives considered**
+| Option | Why not chosen |
+|---|---|
+| Keep the tuning-file val scores, just footnote the caveat | Leaves a known-unfair comparison in the one choice the professor checks most |
+| Pick the best by test accuracy | Leakage: the test score of a model chosen by test is no longer an unbiased estimate (AGENTS.md §4.2) |
+| A weighted score of accuracy, speed and size | Arbitrary weights and units, chosen after seeing results; it would look tuned to a winner. Trade-offs go in the accuracy-vs-time plot instead (RQ3) |
+| Re-tune RBF SVM's whole grid on 54k | ~5 hours (18 fits); unnecessary because the params are already chosen. Only the comparison is unfair, not the choice |
+
+**Why**
+The rule itself is sound; the measurement fed into it wasn't. Fixing the measurement costs 2 fits (~10–15 min), uses only
+train and val, and keeps "chosen on validation, never on test" true. Writing the decision before the run means the result
+can't have influenced the rule.
+
+**How it works**
+1. `experiment.full_train_val_score(name, make_fn, params, kind)` builds the pipeline with the given params, fits it on
+   `get_features(kind, "train")` (54,000 rows), predicts the 6,000 val images, and writes `{name}_{kind}_val_full.json`
+   (`data-formats.md` §7). It never calls `get_features(..., "test")`, so `test_log.csv` can't change.
+2. Notebook 04 runs it for `rbf_svm_pixels` and `rbf_svm_hog` (reusing the JSONs if they already exist).
+3. Phase 05's `pick_best_experiment()` takes `val_acc` from `_val_full.json` for experiments whose `_val.json` has a
+   `train_subset`, and `best_val_acc` from `_val.json` for all others, then picks the highest.
+4. The 6k val set gives each accuracy an uncertainty of about ±0.4 points (√(0.89·0.11/6000) ≈ 0.004), so the write-up
+   should say the top models are close, and the 5-fold CV of the winner shows its stability.
+
+**Files touched**
+- `src/experiment.py`: new `full_train_val_score()`
+- `docs/module-interfaces.md`, `docs/data-formats.md` §7: new function and file format; best-model rule wording
+- `docs/phases/v1/phase-05-results-analysis.md`: selection rule note
+- `notebooks/04_rf_svm.ipynb`, `results/metrics/rbf_svm_*_val_full.json` (in the follow-up commit that runs it)
+
+**Concepts worth learning**
+- **Like-for-like comparison:** a selection rule is only fair if every candidate's score was produced under the same conditions.
+- **Learning curves:** more training data usually raises accuracy, so a model trained on 10k is handicapped against one on 54k.
+- **Pre-registration:** fixing the rule before seeing the numbers it will be applied to, so the outcome can't steer it.
+
+**Result (added after the run, rule unchanged)**
+Run on 2026-10-25 (notebook 04 §6, Apple M3), after the rule above was committed in f76e192:
+
+| Experiment | Val acc, 10k-subset model | Val acc, 54k-train model | 54k fit |
+|---|---|---|---|
+| rbf_svm_pixels | 0.8793 | **0.9082** | 198 s |
+| rbf_svm_hog | 0.8867 | **0.9157** | 367 s |
+
+New val ranking: **rbf_svm_hog 0.9157** > rbf_svm_pixels 0.9082 > logreg_hog 0.8927 > linear_svm_hog 0.8900. The winner is
+rbf_svm_hog by 2.3 points over the best non-RBF model, far more than the ~±0.4-point val noise. The 10k subset had cost RBF
+about 3 points of val accuracy. `test_log.csv` and every existing metrics JSON are byte-identical (SHA-256 checked).
+
+**Revisit if**
+Another subset-tuned model is added (e.g. a Phase 2 model tuned on a subset), or the full-train refit doesn't fit in memory.

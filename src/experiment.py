@@ -64,6 +64,27 @@ def tune_on_val(name: str, make_fn, grid: dict, kind: str, train_subset: int = N
     return dict(best["params"]), table
 
 
+def full_train_val_score(name: str, make_fn, params: dict, kind: str) -> dict:
+    """Refit already-chosen params on the FULL 54k train split and score on val (D-029). Never loads test.
+
+    For models tuned on a subset (RBF SVM), so their val accuracy is comparable with models tuned on all of train.
+    Writes results/metrics/{name}_{kind}_val_full.json.
+    """
+    X_train, y_train = features.get_features(kind, "train"), features.get_labels("train")
+    X_val, y_val = features.get_features(kind, "val"), features.get_labels("val")
+    model = make_fn(**params)
+    with Timer(f"full-train fit {name}_{kind} on {len(y_train)} images") as t:
+        model.fit(X_train, y_train)
+    y_pred = model.predict(X_val)
+    result = {"experiment": f"{name}_{kind}", "model": name, "features": kind, "split": "val",
+              "train_rows": len(y_train), "params": params, "fit_s": round(t.seconds, 2),
+              "val_acc": round(float(accuracy_score(y_val, y_pred)), 4),
+              "val_macro_f1": round(float(f1_score(y_val, y_pred, average="macro")), 4), "timestamp": _now()}
+    save_json(result, config.METRICS_DIR / f"{name}_{kind}_val_full.json")
+    print(f"{name}_{kind} full-train val_acc {result['val_acc']:.4f}")
+    return result
+
+
 # --- 2. The single test evaluation ------------------------------------------------------
 
 def _log_test_use(experiment: str, accuracy: float) -> None:

@@ -77,7 +77,15 @@ Rows are in the same order as the matching `y_{split}`. `trainval` rows are trai
 }
 ```
 - `train_subset` is `null`, or the subset size (e.g. `10000` for `rbf_svm`).
-- The "best model" for phase 05 is the experiment with the highest `best_val_acc` (never test accuracy).
+- The "best model" for phase 05 is the experiment with the highest val accuracy (never test accuracy). For experiments tuned
+  on a subset (`train_subset` not null), the val accuracy comes from `{name}_{kind}_val_full.json` instead (D-029).
+
+**Full-train val score — `results/metrics/{name}_{kind}_val_full.json`** (COMMITTED, only for subset-tuned experiments)
+```json
+{"experiment": "rbf_svm_hog", "model": "rbf_svm", "features": "hog", "split": "val", "train_rows": 54000,
+ "params": {"C": 10, "gamma": "scale"}, "fit_s": 0.0, "val_acc": 0.0, "val_macro_f1": 0.0, "timestamp": "2026-10-25T12:00:00"}
+```
+Written by `experiment.full_train_val_score()`: the chosen params refit on all 54k train images and scored on the same 6k val.
 
 ## 8. Test results — `results/metrics/{name}_{kind}_test.json` (COMMITTED)
 ```json
