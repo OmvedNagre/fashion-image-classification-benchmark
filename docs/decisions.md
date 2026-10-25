@@ -1332,7 +1332,7 @@ Phase 05 aggregates the benchmark results across all 12 experiments into `result
 **Decision**
 1. In `src/results.py`: `pick_best_experiment()` and `build_summary()` determine validation accuracy by inspecting for `{experiment}_val_full.json` (created for subset-tuned models such as RBF SVM per D-029) and falling back to `best_val_acc` in `{experiment}_val.json`. Validation accuracy is never read from test data. The selection rule chooses `rbf_svm_hog` (val accuracy 0.9157).
 2. In `build_summary()`: When `timing_comparable` is False in the test JSON (for `logreg_pixels` and `logreg_hog`), `train_time_s` and `inference_ms_per_1000` are emitted as `NaN` (blank in CSV). Zero is never substituted.
-3. In `plot_acc_vs_inference()`: Filter out rows with `NaN` timing, explicitly stating the exclusion in a footnote, alongside cross-phase hardware notes (Phase 03 on Apple M3 vs Phase 04 on Apple M3 Pro; Dummy sandbox environment) and RBF SVM HOG inference upper bound (D-028).
+3. In `plot_acc_vs_inference()`: Filter out rows with `NaN` timing (Logistic Regression per D-024) and the dummy baseline where zero latency (`dummy_pixels` has 0.00 ms measured latency) is mathematically undefined on a logarithmic axis. Preserves original measurements in `results/summary.csv` and source JSONs without substitution, and explicitly states all exclusions in the figure footnote alongside cross-phase hardware notes (Phase 03 on Apple M3 vs Phase 04 on Apple M3 Pro; Dummy sandbox environment) and RBF SVM HOG inference upper bound (D-028).
 4. In `cross_validate_best()` (Task 05.3): Stratified 5-fold cross-validation is performed strictly on `trainval` (10,000 stratified subset for RBF SVM per D-005 and D-027), never touching the test set.
 
 **Alternatives considered**
@@ -1340,6 +1340,7 @@ Phase 05 aggregates the benchmark results across all 12 experiments into `result
 |---|---|
 | Pick the best model using test accuracy | Information leakage: invalidates test set as an unbiased performance estimator |
 | Substitute 0.0 or mean values for contaminated LR timings | Distortion: 0 ms suggests instantaneous inference; violates benchmark accuracy |
+| Substitute an arbitrary small positive number (e.g. 0.001) for dummy zero latency | Falsifies measurement: original metrics must be preserved truthfully; mathematical incompatibilities on log scales are properly handled via documented exclusion |
 | Discard the entire LR experiments from summary table | Unnecessary: predictive metrics (accuracy, F1, class recall) remain fully valid and informative |
 | Run 5-fold CV on all 60k images for RBF SVM | Computationally prohibitive (~35–45 minutes); 10k stratified subset is the pre-registered protocol (D-005, D-027) |
 

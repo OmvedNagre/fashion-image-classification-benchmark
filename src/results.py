@@ -242,12 +242,19 @@ def plot_pixels_vs_hog(df: pd.DataFrame) -> plt.Figure:
 def plot_acc_vs_inference(df: pd.DataFrame) -> plt.Figure:
     """Scatter plot of Test Accuracy vs Inference Latency (RQ3).
 
-    Excludes experiments where timing_comparable=false (D-024).
+    Excludes experiments where timing_comparable=false (D-024) and the dummy
+    baseline where zero latency (dummy_pixels = 0.00 ms) cannot be displayed
+    on a logarithmic scale (dummy_hog is also excluded to focus on candidate models).
+    Preserves original measurements in results/summary.csv.
     Documents hardware differences (M3 vs M3 Pro) and RBF upper bound (D-028).
     Saves results/figures/results_acc_vs_time.png via utils.save_fig().
     """
-    # Exclude missing / non-comparable timing
-    valid_df = df[df["inference_ms_per_1000"].notna()].copy()
+    # Exclude non-comparable timing (D-024) and dummy baseline with zero/near-zero latency
+    valid_df = df[
+        df["inference_ms_per_1000"].notna()
+        & (df["inference_ms_per_1000"] > 0)
+        & (df["model"] != "dummy")
+    ].copy()
 
     fig, ax = plt.subplots(figsize=(10, 6.5), dpi=config.FIGURE_DPI)
     ax.set_axisbelow(True)
@@ -257,16 +264,14 @@ def plot_acc_vs_inference(df: pd.DataFrame) -> plt.Figure:
     marker_map = {"pixels": "o", "hog": "s"}
 
     label_offsets = {
-        "dummy_pixels": (10, -5),
-        "dummy_hog": (10, 5),
-        "linear_svm_pixels": (12, -8),
-        "linear_svm_hog": (12, 4),
-        "rf_pixels": (12, -8),
-        "rf_hog": (12, 4),
-        "knn_pixels": (12, -8),
-        "knn_hog": (12, 4),
-        "rbf_svm_pixels": (12, -6),
-        "rbf_svm_hog": (-110, -14),
+        "linear_svm_pixels": (10, -8),
+        "linear_svm_hog": (10, 4),
+        "rf_pixels": (10, -8),
+        "rf_hog": (10, 4),
+        "knn_hog": (10, -5),
+        "knn_pixels": (10, -8),
+        "rbf_svm_pixels": (10, 5),
+        "rbf_svm_hog": (-115, -12),
     }
 
     for feat in ["pixels", "hog"]:
@@ -299,19 +304,23 @@ def plot_acc_vs_inference(df: pd.DataFrame) -> plt.Figure:
         )
 
     ax.set_xscale("log")
+    ax.set_xlim(0.8, 50000)
+    ax.set_ylim(80, 94)
     ax.set_xlabel("Inference Latency (ms per 1,000 images, log scale)", fontsize=11)
     ax.set_ylabel("Test Accuracy (%)", fontsize=11)
     ax.set_title("RQ3: Accuracy vs Inference Speed Trade-off", fontsize=13, pad=12)
-    ax.set_ylim(0, 100)
     ax.legend(frameon=True, facecolor="white", framealpha=0.9, loc="lower right", fontsize=10)
 
     # Footnote detailing exclusions and hardware context
     footnote = (
-        "Notes: Logistic Regression (pixels, HOG) excluded due to non-comparable timing (D-024).\n"
-        "Dummy baseline measured in separate sandbox environment. Phase 03 timed on Apple M3, Phase 04 on Apple M3 Pro.\n"
+        "Notes: Excluded from latency plot:\n"
+        "• Logistic Regression (pixels, HOG) excluded due to non-comparable timing (D-024).\n"
+        "• Dummy baseline (pixels: 0.00 ms, HOG: 0.01 ms) excluded: zero latency cannot be plotted on a log scale;\n"
+        "  timings originated from a separate sandbox environment with trivial 10.0% accuracy.\n"
+        "Hardware context: Phase 03 timed on Apple M3, Phase 04 on Apple M3 Pro.\n"
         "RBF SVM HOG inference (~28.9s / 1,000) was measured under system contention and is an upper bound (D-028)."
     )
-    plt.figtext(0.08, -0.04, footnote, wrap=True, horizontalalignment="left", fontsize=8, color="#444444")
+    plt.figtext(0.08, -0.06, footnote, wrap=True, horizontalalignment="left", fontsize=8, color="#444444")
 
     fig.tight_layout()
     utils.save_fig(fig, "results_acc_vs_time")
