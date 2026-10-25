@@ -86,7 +86,7 @@ From v1/03 (PR #1 by Rajat, merged 2026-10-24):
   - `linear_svm_pixels`: val acc 85.83% (`C=0.01`) -> test acc **83.78%**, macro F1 0.8353 (7,850 coefficients).
   - `linear_svm_hog`: val acc 89.00% (`C=0.01`) -> test acc **88.98%**, macro F1 0.8892 (17,290 coefficients). Massive +5.2 percentage point gain over pixels.
   - `rbf_svm_pixels`: val acc 87.93% on 10k subset (`C=10, gamma=0.001`) -> test acc **89.70%**, macro F1 0.8967 (19,710 support vectors).
-  - `rbf_svm_hog`: val acc 88.67% on 10k subset (`C=10, gamma='scale'`) -> test acc **91.08%**, macro F1 0.9108 (26,343 support vectors). Highest **test** accuracy of the 12 experiments (not the highest val; see D-028).
+  - `rbf_svm_hog`: val acc 88.67% on 10k subset (`C=10, gamma='scale'`) -> test acc **91.08%**, macro F1 0.9108 (26,343 support vectors). Highest **test** accuracy of the 12 experiments (by the 10k-subset val it wasn't the highest; with comparable 54k-train val it is, 0.9157, see D-029).
 - **Key decisions:**
   - D-026: `make_linear_svm` uses `dual="auto"` (primal solver here) with the default `max_iter`. $C=0.01$ won on validation for both feature sets and is also the fastest fit.
   - D-027: Class-stratified 10,000 subset tuning for RBF SVM reduced hyperparameter search time by ~29×, accurately identifying optimal parameters prior to full 60,000 image refit.
@@ -99,6 +99,7 @@ From v1/03 (PR #1 by Rajat, merged 2026-10-24):
 - **Next phase should know:**
   - All 12 test experiments are complete and audited in `results/test_log.csv` (1 row per experiment).
   - **By val accuracy** (the selection rule): logreg_hog 0.8927 > linear_svm_hog 0.8900 > rbf_svm_hog = rf_pixels 0.8867. RBF SVM HOG has the best **test** accuracy (91.08%), which must not be used to choose. State the RBF 10k-subset caveat when applying the rule (D-028).
+    **Update (D-029):** with RBF refit on all 54k, comparable val is rbf_svm_hog 0.9157 > rbf_svm_pixels 0.9082 > logreg_hog 0.8927, so `rbf_svm_hog` is the best by val.
   - Phase 05 can directly pull from `results/metrics/*_test.json` to generate the global benchmark comparison tables, Pareto latency frontiers, and final 5-fold CV stability analysis.
 
 ## Next phase preview
