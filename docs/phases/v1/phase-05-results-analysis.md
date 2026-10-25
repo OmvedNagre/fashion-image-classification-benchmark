@@ -74,19 +74,19 @@ From v1/04 (PR #2 by Tanmay, merged 2026-10-25, review fixes in D-028):
 - `prd.md` → §3 research questions, §8 success metrics
 
 ## Tasks
-- [ ] 05.1 — `results.py`: `load_all_metrics`, `build_summary`, `pick_best_experiment` → `feat(results): aggregate metrics into summary table`
-- [ ] 05.2 — Comparison plots (RQ2, RQ3, RQ4) → `feat(results): add cross-model comparison plots`
-- [ ] 05.3 — 5-fold CV on the best (by val) experiment → `feat(results): add stability check for best model`
+- [x] 05.1 — `results.py`: `load_all_metrics`, `build_summary`, `pick_best_experiment` → `feat(results): aggregate metrics into summary table`
+- [x] 05.2 — Comparison plots (RQ2, RQ3, RQ4) → `feat(results): add cross-model comparison plots`
+- [x] 05.3 — 5-fold CV on the best (by val) experiment → `feat(results): add stability check for best model`
 - [ ] 05.4 — Error analysis: confusion matrix, top pairs, misclassified grids, model agreement → `feat(errors): add error analysis`
 - [ ] 05.5 — `05_results_analysis.ipynb` write-up: RQ answers + Phase 2 motivation → `feat(results): add results and analysis notebook`
 - [ ] 05.6 — Full README → `docs(readme): add setup, run order and results`
 - [ ] 05.7 — Update docs touched by this phase; progress shows v1 complete → `docs(phase-05): update docs and decisions`
 
 ## Done criteria
-- [ ] `summary.csv` contains all 12 experiments (dummy, logreg, knn, rf, linear_svm, rbf_svm × pixels, hog)
-- [ ] All figures in `results/figures/` are produced by code; none made by hand
-- [ ] `test_log.csv` shows each experiment evaluated once (or repeats explained in `decisions.md`); still 12 rows
-- [ ] `pick_best_experiment()` returns `rbf_svm_hog`, chosen from comparable val scores (D-029); CV and error analysis use it
+- [x] `summary.csv` contains all 12 experiments (dummy, logreg, knn, rf, linear_svm, rbf_svm × pixels, hog)
+- [x] All figures in `results/figures/` are produced by code; none made by hand
+- [x] `test_log.csv` shows each experiment evaluated once (or repeats explained in `decisions.md`); still 12 rows
+- [x] `pick_best_experiment()` returns `rbf_svm_hog`, chosen from comparable val scores (D-029); CV and error analysis use it
 - [ ] RQ1–RQ4 answered in notebook 05
 - [ ] Fresh-clone run following only the README reproduces the README table
 - [ ] Docs match what was built; decisions logged
