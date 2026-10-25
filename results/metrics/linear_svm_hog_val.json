@@ -1,0 +1,45 @@
+{
+ "experiment": "linear_svm_hog",
+ "model": "linear_svm",
+ "features": "hog",
+ "split": "val",
+ "train_subset": null,
+ "grid": {
+  "C": [
+   0.01,
+   0.1,
+   1
+  ]
+ },
+ "rows": [
+  {
+   "params": {
+    "C": 0.01
+   },
+   "fit_s": 151.23,
+   "val_acc": 0.89,
+   "val_macro_f1": 0.8895
+  },
+  {
+   "params": {
+    "C": 0.1
+   },
+   "fit_s": 247.52,
+   "val_acc": 0.882,
+   "val_macro_f1": 0.8816
+  },
+  {
+   "params": {
+    "C": 1
+   },
+   "fit_s": 810.91,
+   "val_acc": 0.876,
+   "val_macro_f1": 0.8757
+  }
+ ],
+ "best_params": {
+  "C": 0.01
+ },
+ "best_val_acc": 0.89,
+ "timestamp": "2026-10-25T00:52:13"
+}

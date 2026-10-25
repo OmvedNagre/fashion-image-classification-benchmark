@@ -1,0 +1,151 @@
+{
+ "experiment": "rf_hog",
+ "model": "rf",
+ "features": "hog",
+ "split": "val",
+ "train_subset": null,
+ "grid": {
+  "n_estimators": [
+   100,
+   300
+  ],
+  "max_depth": [
+   null,
+   20,
+   40
+  ],
+  "max_features": [
+   "sqrt",
+   "log2"
+  ]
+ },
+ "rows": [
+  {
+   "params": {
+    "max_depth": null,
+    "max_features": "sqrt",
+    "n_estimators": 100
+   },
+   "fit_s": 20.02,
+   "val_acc": 0.87,
+   "val_macro_f1": 0.8687
+  },
+  {
+   "params": {
+    "max_depth": null,
+    "max_features": "sqrt",
+    "n_estimators": 300
+   },
+   "fit_s": 59.32,
+   "val_acc": 0.8735,
+   "val_macro_f1": 0.8722
+  },
+  {
+   "params": {
+    "max_depth": null,
+    "max_features": "log2",
+    "n_estimators": 100
+   },
+   "fit_s": 4.81,
+   "val_acc": 0.8583,
+   "val_macro_f1": 0.8565
+  },
+  {
+   "params": {
+    "max_depth": null,
+    "max_features": "log2",
+    "n_estimators": 300
+   },
+   "fit_s": 14.45,
+   "val_acc": 0.8642,
+   "val_macro_f1": 0.8628
+  },
+  {
+   "params": {
+    "max_depth": 20,
+    "max_features": "sqrt",
+    "n_estimators": 100
+   },
+   "fit_s": 17.76,
+   "val_acc": 0.8667,
+   "val_macro_f1": 0.8655
+  },
+  {
+   "params": {
+    "max_depth": 20,
+    "max_features": "sqrt",
+    "n_estimators": 300
+   },
+   "fit_s": 51.98,
+   "val_acc": 0.8697,
+   "val_macro_f1": 0.8684
+  },
+  {
+   "params": {
+    "max_depth": 20,
+    "max_features": "log2",
+    "n_estimators": 100
+   },
+   "fit_s": 4.53,
+   "val_acc": 0.8563,
+   "val_macro_f1": 0.8547
+  },
+  {
+   "params": {
+    "max_depth": 20,
+    "max_features": "log2",
+    "n_estimators": 300
+   },
+   "fit_s": 14.8,
+   "val_acc": 0.8617,
+   "val_macro_f1": 0.8603
+  },
+  {
+   "params": {
+    "max_depth": 40,
+    "max_features": "sqrt",
+    "n_estimators": 100
+   },
+   "fit_s": 19.43,
+   "val_acc": 0.872,
+   "val_macro_f1": 0.871
+  },
+  {
+   "params": {
+    "max_depth": 40,
+    "max_features": "sqrt",
+    "n_estimators": 300
+   },
+   "fit_s": 58.54,
+   "val_acc": 0.8722,
+   "val_macro_f1": 0.8709
+  },
+  {
+   "params": {
+    "max_depth": 40,
+    "max_features": "log2",
+    "n_estimators": 100
+   },
+   "fit_s": 4.86,
+   "val_acc": 0.8592,
+   "val_macro_f1": 0.8575
+  },
+  {
+   "params": {
+    "max_depth": 40,
+    "max_features": "log2",
+    "n_estimators": 300
+   },
+   "fit_s": 14.96,
+   "val_acc": 0.8642,
+   "val_macro_f1": 0.8627
+  }
+ ],
+ "best_params": {
+  "max_depth": null,
+  "max_features": "sqrt",
+  "n_estimators": 300
+ },
+ "best_val_acc": 0.8735,
+ "timestamp": "2026-10-25T00:04:47"
+}

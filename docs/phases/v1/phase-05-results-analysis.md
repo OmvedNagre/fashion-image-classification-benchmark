@@ -27,9 +27,15 @@ This is v1 (capstone Phase 1) code-complete.
    - Acceptance: `results_pixels_vs_hog.png` (RQ2), `results_acc_vs_time.png` (RQ3), `results_recall_heatmap.png` (RQ4).
    - Exclude missing times from speed plots/rankings and state which experiments were omitted. Do not treat missing timings as zero or discard their accuracy results.
    - `dummy_*` timings come from a different environment (`env.cpu` = `arm64`, likely a sandbox). They're near zero anyway; footnote them.
+   - Phase 03 timings were measured on an Apple M3 and phase 04's on an Apple M3 Pro. Footnote that cross-phase speed
+     comparisons are approximate. `rbf_svm_hog` inference (28.9 s / 1,000) looks ~2× inflated; call it an upper bound (D-028).
 3. **Stability check** (F-11)
    - Acceptance: `pick_best_experiment()` picks by **val** accuracy. `cross_validate_best()` writes `_cv.json` with mean ± std.
      If it's an SVM, it uses a 10k stratified subset, documented.
+   - Current val ranking: logreg_hog 0.8927 > linear_svm_hog 0.8900 > rbf_svm_hog = rf_pixels 0.8867, so the rule picks
+     **logreg_hog**, although rbf_svm_hog has the best test score (91.08%). RBF SVM val scores come from 10k-image models
+     (D-027, D-028), so they understate it. Apply the rule as written and explain this caveat; changing the rule needs the
+     lead's approval and a decision entry.
 4. **Error analysis** (F-13)
    - Acceptance: normalised confusion matrix of the best model, a top-5 confused-pairs table, a misclassified-image grid for
      each pair, and the agreement between the two best models (same mistakes?). A written explanation of why handcrafted
@@ -37,6 +43,7 @@ This is v1 (capstone Phase 1) code-complete.
 5. **Write-up of RQ1–RQ4 + Phase 2 motivation**
    - Limitation to mention: LR's validation accuracy rises monotonically as C shrinks and the best C (0.01) is the
      smallest value in the planned grid, so the true optimum may be lower (D-020). Not re-tuned, to avoid another test run.
+     The same holds for LinearSVC (best C = 0.01, smallest value), and RBF SVM's best C (10) is the largest value tried.
    - Acceptance: `05_results_analysis.ipynb` ends with one short answer per RQ and a "why a CNN next" paragraph.
 6. **README** (F-14)
    - Acceptance: setup (conda + VS Code, Colab fallback), run order (notebooks 01→05 with rough runtimes), results table

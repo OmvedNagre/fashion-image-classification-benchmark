@@ -1,0 +1,108 @@
+{
+ "experiment": "rbf_svm_hog",
+ "model": "rbf_svm",
+ "features": "hog",
+ "split": "val",
+ "train_subset": 10000,
+ "grid": {
+  "C": [
+   0.1,
+   1,
+   10
+  ],
+  "gamma": [
+   "scale",
+   0.01,
+   0.001
+  ]
+ },
+ "rows": [
+  {
+   "params": {
+    "C": 0.1,
+    "gamma": "scale"
+   },
+   "fit_s": 25.67,
+   "val_acc": 0.8362,
+   "val_macro_f1": 0.8364
+  },
+  {
+   "params": {
+    "C": 0.1,
+    "gamma": 0.01
+   },
+   "fit_s": 73.39,
+   "val_acc": 0.1118,
+   "val_macro_f1": 0.041
+  },
+  {
+   "params": {
+    "C": 0.1,
+    "gamma": 0.001
+   },
+   "fit_s": 38.14,
+   "val_acc": 0.8068,
+   "val_macro_f1": 0.8074
+  },
+  {
+   "params": {
+    "C": 1,
+    "gamma": "scale"
+   },
+   "fit_s": 17.64,
+   "val_acc": 0.885,
+   "val_macro_f1": 0.8851
+  },
+  {
+   "params": {
+    "C": 1,
+    "gamma": 0.01
+   },
+   "fit_s": 74.53,
+   "val_acc": 0.284,
+   "val_macro_f1": 0.3003
+  },
+  {
+   "params": {
+    "C": 1,
+    "gamma": 0.001
+   },
+   "fit_s": 29.97,
+   "val_acc": 0.8793,
+   "val_macro_f1": 0.8795
+  },
+  {
+   "params": {
+    "C": 10,
+    "gamma": "scale"
+   },
+   "fit_s": 18.21,
+   "val_acc": 0.8867,
+   "val_macro_f1": 0.8866
+  },
+  {
+   "params": {
+    "C": 10,
+    "gamma": 0.01
+   },
+   "fit_s": 73.84,
+   "val_acc": 0.2928,
+   "val_macro_f1": 0.3106
+  },
+  {
+   "params": {
+    "C": 10,
+    "gamma": 0.001
+   },
+   "fit_s": 28.24,
+   "val_acc": 0.8842,
+   "val_macro_f1": 0.8844
+  }
+ ],
+ "best_params": {
+  "C": 10,
+  "gamma": "scale"
+ },
+ "best_val_acc": 0.8867,
+ "timestamp": "2026-10-25T01:15:43"
+}
