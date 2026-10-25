@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Owner | Tanmay Singh |
-| Status | review |
+| Status | done |
 | Branch | `phase/v1-04-rf-svm` |
 | Depends on | Phase v1/03 |
 | PRD features | F-10, S-01 |

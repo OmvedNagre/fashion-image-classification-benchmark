@@ -1,7 +1,7 @@
 # Progress
 
-**Current phase:** v1/04 — Random Forest & SVM (`review`)
-**Branch:** `phase/v1-04-rf-svm`
+**Current phase:** v1/05 — Results, Error Analysis & README (`not-started`)
+**Branch:** —
 **Profile:** lean
 
 ## Phases
@@ -11,7 +11,7 @@
 | 01 | [Foundation & Data](phases/v1/phase-01-foundation.md) | Rajdeep | done | phase/v1-01-foundation | 2026-10-24 | 2026-10-24 |
 | 02 | [Features & Evaluation Harness](phases/v1/phase-02-features-harness.md) | Rajdeep | done | phase/v1-02-features-harness | 2026-10-24 | 2026-10-24 |
 | 03 | [Dummy, Logistic Regression & kNN](phases/v1/phase-03-linear-knn.md) | Rajat Srivastav | done | phase/v1-03-linear-knn | 2026-10-24 | 2026-10-24 |
-| 04 | [Random Forest & SVM](phases/v1/phase-04-rf-svm.md) | Tanmay Singh | review | phase/v1-04-rf-svm | 2026-10-24 | |
+| 04 | [Random Forest & SVM](phases/v1/phase-04-rf-svm.md) | Tanmay Singh | done | phase/v1-04-rf-svm | 2026-10-24 | 2026-10-25 |
 | 05 | [Results, Error Analysis & README](phases/v1/phase-05-results-analysis.md) | TBD | not-started | phase/v1-05-results-analysis | | |
 
 Status values: `not-started` → `in-progress` → `review` → `done`
