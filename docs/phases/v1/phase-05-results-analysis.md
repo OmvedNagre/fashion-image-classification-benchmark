@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Owner | _TBD_ (set when the phase starts) |
-| Status | not-started |
-| Branch | `phase/v1-05-results-analysis` |
+| Owner | Anand Mishra |
+| Status | in-progress |
+| Branch | `phase/v1-05-anand-results` |
 | Depends on | Phase v1/04 |
 | PRD features | F-11, F-12, F-13, F-14 |
 | idea.md workstream | WS5 — Evaluation, Error Analysis & Integration |
