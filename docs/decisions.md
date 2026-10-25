@@ -41,6 +41,7 @@ Rules:
 | D-025 | 2026-10-24 | v1/03 | Post-review consistency: weight-map plot moved to notebook; result annotation rule | Active |
 | D-026 | 2026-10-25 | v1/04 | LinearSVC dual optimization and convergence behavior across feature sets | Active |
 | D-027 | 2026-10-25 | v1/04 | RBF SVM stratified 10k subset tuning and full 60k refit scaling | Active |
+| D-028 | 2026-10-25 | v1/04 | Review fixes: reproducible figures, test guard, runtime notes, val and timing caveats | Active |
 
 ---
 
@@ -1109,30 +1110,32 @@ Phase 05 needs the weight maps again. Then it can read the PNG or move the code 
 LinearSVC optimization on 54k/60k images with $d=784$ (pixels) and $d=1,728$ (HOG) poses significant dual vs primal convergence trade-offs as $C$ increases. In Phase 02, exact LinearSVC on HOG was flagged as slow.
 
 **Decision**
-Configure `make_linear_svm` with `dual="auto"` (scikit-learn selects primal coordinate descent when $n_{\text{samples}} > n_{\text{features}}$, which holds since $54,000 > 784$ and $54,000 > 1,728$), capped at `max_iter=5000`. Sweep $C \in [0.01, 0.1, 1.0]$. Both feature sets chose $C=0.01$ as the validation winner with rapid convergence (105s on pixels, 34s on HOG).
+Configure `make_linear_svm` with `dual="auto"` (scikit-learn then solves the **primal** problem, i.e. `dual=False`, because $n_{\text{samples}} > n_{\text{features}}$: $54,000 > 784$ and $54,000 > 1,728$), keeping the default `max_iter=1000`. Sweep $C \in [0.01, 0.1, 1.0]$. Both feature sets chose $C=0.01$ as the validation winner, which was also the fastest fit (105 s on pixels, 151 s on HOG during tuning on 54k).
 
 **Alternatives considered**
 | Option | Why not chosen |
 |---|---|
-| Fixed `dual=True` | Extremely slow for $N=54,000$ (dual coordinate descent scales quadratically with sample count) |
+| Fixed `dual=True` | The dual problem has one variable per training image (54,000); liblinear recommends the primal solver when there are far more samples than features |
 | Subsetting training set | Unnecessary because primal formulation with $C=0.01$ solves in ~1–2 minutes on the full 54k training set |
 | SGDClassifier(loss='hinge') | Approximates LinearSVC via stochastic gradient descent, but requires learning rate scheduling and doesn't guarantee the exact coordinate descent solution |
 
 **Why**
-Primal coordinate descent (`dual="auto"`) converges rapidly when $N \gg d$, providing an exact linear SVM baseline across all 60k samples without downsampling. Higher $C$ values ($C=1.0$) caused fit times to spike ($924$s on pixels) due to strict penalties on margin violations on non-separable image data, confirming $C=0.01$ as both the optimal and fastest regularisation choice.
+The primal solver (which `dual="auto"` picks here) converges quickly when $N \gg d$, providing an exact linear SVM baseline across all 60k samples without downsampling. Higher $C$ values ($C=1.0$) caused fit times to spike ($924$s on pixels) due to strict penalties on margin violations on non-separable image data, confirming $C=0.01$ as both the optimal and fastest regularisation choice.
 
 **How it works**
-`make_linear_svm(C)` wraps `StandardScaler` and `LinearSVC(C=C, dual="auto", max_iter=5000, random_state=42)`. On raw pixels, test accuracy was 83.78%; on HOG, test accuracy reached 88.98% (+5.2 percentage points), demonstrating the immense power of edge-orientation histograms for linear hyperplanes.
+`make_linear_svm(C)` wraps `StandardScaler` and `LinearSVC(C=C, dual="auto", random_state=42)`; `max_iter` stays at its default of 1000. Convergence warnings were not recorded. The C = 1 fits (924 s pixels / 811 s HOG) may have hit that cap, which does not change the choice: C = 0.01 won on val and is the fastest. The final 60k refits took 99 s (pixels) and 162 s (HOG). On raw pixels, test accuracy was 83.78%; on HOG, test accuracy reached 88.98% (+5.2 percentage points), demonstrating the immense power of edge-orientation histograms for linear hyperplanes.
 
 **Files touched**
 - `src/models_tree_kernel.py`, `results/metrics/linear_svm_*`, `notebooks/04_rf_svm.ipynb`
 
 **Concepts worth learning**
-- Primal vs. dual coordinate descent in linear SVMs; LibLinear solver selection based on sample vs feature ratios.
+- Primal (trust-region Newton) vs. dual (coordinate descent) solvers in liblinear, and why the sample/feature ratio decides which is faster.
 - The effect of regularisation $C$ on the number of margin violations and solver iteration count.
 
 **Revisit if**
-Never in v1 classical benchmark.
+Phase 05 wants an exact optimum below C = 0.01 (the winner is at the grid edge), or LinearSVC is chosen for CV and its fits are too slow.
+
+*Corrected in review (D-028): the original entry said `max_iter=5000` and a 34 s HOG fit; neither matched the code or the JSONs.*
 
 ---
 
@@ -1162,7 +1165,7 @@ Stratified subsampling reduces tuning time by $(54/10)^2 \approx 29.2\times$, wh
 `tune_on_val(..., train_subset=config.SVM_TUNE_SUBSET)` records `"train_subset": 10000` in `rbf_svm_*_val.json`. `final_test_run()` trains on full 60k, yielding 19,710 support vectors for pixels and 26,343 for HOG.
 
 **Files touched**
-- `src/models_tree_kernel.py`, `src/experiment.py`, `results/metrics/rbf_svm_*`, `notebooks/04_rf_svm.ipynb`
+- `src/models_tree_kernel.py`, `results/metrics/rbf_svm_*`, `notebooks/04_rf_svm.ipynb` (uses the existing `tune_on_val(train_subset=...)`; `src/experiment.py` is unchanged)
 
 **Concepts worth learning**
 - Quadratic solver scaling in kernel machines; Mercer's theorem.
@@ -1171,3 +1174,72 @@ Stratified subsampling reduces tuning time by $(54/10)^2 \approx 29.2\times$, wh
 **Revisit if**
 Phase 05 uses RBF SVM for 5-fold CV; 10k subset or parallel fold execution may be required.
 
+---
+
+### D-028 — Review fixes: reproducible figures, test guard, runtime notes, val and timing caveats
+- **Date:** 2026-10-25
+- **Phase:** v1/04 — review fixes by the lead on PR #2 (before merge)
+- **Status:** Active
+- **Type:** edge-case
+
+**Context**
+The review of PR #2 found the results themselves honest: all 6 test JSONs were recomputed from the real test labels and
+matched, and `test_log.csv` shows one test per experiment, each after its tuning. But several things around them were wrong:
+1. The phase summary, notebook and PR said RBF SVM on HOG was the best model "by validation". It is not (see below).
+2. Some committed figures could not be regenerated by the notebook. It drew pixels and HOG in one figure and saved it as
+   `..._val_curve_pixels` (breaking "one plot per file", `data-formats.md` §12), while the committed `..._val_curve_hog.png`
+   files and the RF heatmap came from code that was never committed.
+3. D-026 described `max_iter=5000` and a 34 s HOG fit; the code uses the default 1000 and the JSON says 151 s. D-027 listed
+   `src/experiment.py` as changed; it wasn't.
+4. The notebook's test cell was weaker than notebook 03's guard (D-021): it didn't check `test_log.csv`, and on a parameter
+   mismatch it would silently run the test again.
+5. No slow cell had a "⏱" runtime marker, although the done criterion was ticked.
+6. Timings come from a different machine (Apple M3 Pro) than phase 03 (Apple M3).
+
+**Decision**
+Fix everything in the notebook and docs **without any new test evaluation**, and write down two caveats Phase 05 must carry:
+RBF SVM val scores are not comparable with the others, and timings differ across machines.
+
+**Alternatives considered**
+| Option | Why not chosen |
+|---|---|
+| Re-tune RBF SVM on all 54k so its val score is comparable | Hours of compute, and it contradicts the documented subset plan (D-027, system-design §11) for no change in the test results |
+| Re-measure RBF/RF timings on one machine | Needs a refit and a new prediction on test, i.e. a second test use per experiment (AGENTS.md §4.1) |
+| Merge as-is and let Phase 05 clean up | Leaves non-reproducible figures and a false "best by val" claim that could push Phase 05 into choosing by test |
+
+**Why**
+The project's credibility rests on two things the professor will check: every figure is produced by code, and every choice is
+made on validation. Both were at risk, while the fixes are cheap and touch no result file.
+
+**How it works**
+- **Figures:** the LinearSVC and RBF curve cells now loop over `pixels`/`hog` and save one figure each with `save_fig`
+  (`treekernel_{linear_svm,rbf_svm}_val_curve_{pixels,hog}.png`). The heatmap cell always refits the tested `rf_pixels`
+  configuration on train+val (seed 42, so the same forest; ~50 s) and saves `treekernel_rf_importance.png`. No test data.
+- **Test guard:** copied from notebook 03. A saved test JSON is reused only if its params equal the val winner, otherwise
+  it raises; if the JSON is missing but the experiment is already in `test_log.csv`, it raises instead of re-testing.
+- **Runtimes:** ⏱ notes before each slow cell, plus a table built from the JSONs (tuning total, slowest fit, final 60k fit,
+  inference per 1,000) and a written section. Restart & Run All took 51 s with 0 errors; `test_log.csv` and every metrics
+  JSON are byte-identical before and after (SHA-256 checked).
+- **Validation ranking (what Phase 05's "best by val" rule sees):** logreg_hog 0.8927 > linear_svm_hog 0.8900 >
+  rbf_svm_hog 0.8867 = rf_pixels 0.8867. RBF SVM leads only on test (91.08%). Its val score comes from a model trained
+  on 10k images, while the others use 54k, so it understates the final 60k model.
+- **Timing caveat:** RBF SVM prediction cost should grow with support vectors × dimensions: (26,343 × 1,728) /
+  (19,710 × 784) ≈ 2.9× from pixels to HOG. The measured ratio is 28,877 / 4,767 ≈ 6.1×, so the HOG latency may include
+  memory pressure or other load. Treat it as an upper bound.
+- **Docs:** D-026/D-027 corrected (marked in D-026), phase summary and progress fixed, Phase 05 file notes added, PR
+  description table corrected to the JSON values.
+
+**Files touched**
+- `notebooks/04_rf_svm.ipynb`: per-feature figures, generated heatmap, notebook-03 test guard, ⏱ notes, runtime section, LaTeX fix (`\rho`, `\text`), corrected summary
+- `results/figures/treekernel_*`: regenerated by the notebook
+- `docs/decisions.md`: D-026, D-027 corrections; this entry
+- `docs/phases/v1/phase-04-rf-svm.md`, `docs/phases/v1/phase-05-results-analysis.md`, `docs/progress.md`
+
+**Concepts worth learning**
+- **Comparable validation scores:** a model selection rule is only fair if each candidate's val score was produced the same way (same training size).
+- **Reproducibility:** a committed figure without the code that made it can't be defended or regenerated.
+- **Confounders in timing:** different machines or background load change timings, never accuracies.
+
+**Revisit if**
+Phase 05 decides to change the "best by val" rule because of the RBF subset caveat (that needs its own decision entry), or
+the team re-measures all timings on one machine.
