@@ -142,7 +142,7 @@ For `timing_comparable=false`, retain the experiment and its accuracy metrics, b
 | Column | Type |
 |---|---|
 | `experiment`, `model`, `features` | str |
-| `val_acc` | float (from the matching `_val.json`) |
+| `val_acc` | float: the comparable val score, from `_val_full.json` if it exists (subset-tuned RBF SVM), else `best_val_acc` from `_val.json` (D-029) |
 | `test_acc`, `test_macro_f1` | float |
 | `recall_c0` … `recall_c9` | float |
 | `train_time_s`, `inference_ms_per_1000` | float |
