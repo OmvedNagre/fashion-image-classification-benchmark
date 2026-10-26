@@ -78,7 +78,7 @@ From v1/04 (PR #2 by Tanmay, merged 2026-10-25, review fixes in D-028):
 - [x] 05.2 — Comparison plots (RQ2, RQ3, RQ4) → `feat(results): add cross-model comparison plots`
 - [x] 05.3 — 5-fold CV on the best (by val) experiment → `feat(results): add stability check for best model`
 - [x] 05.4 — Error analysis: confusion matrix, top pairs, misclassified grids, model agreement → `feat(errors): add error analysis`
-- [ ] 05.5 — `05_results_analysis.ipynb` write-up: RQ answers + Phase 2 motivation → `feat(results): add results and analysis notebook`
+- [x] 05.5 — `05_results_analysis.ipynb` write-up: RQ answers + Phase 2 motivation → `feat(results): add results and analysis notebook`
 - [ ] 05.6 — Full README → `docs(readme): add setup, run order and results`
 - [ ] 05.7 — Update docs touched by this phase; progress shows v1 complete → `docs(phase-05): update docs and decisions`
 
