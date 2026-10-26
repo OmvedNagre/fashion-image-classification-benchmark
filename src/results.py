@@ -172,23 +172,179 @@ def plot_recall_heatmap(df: pd.DataFrame) -> plt.Figure:
     return fig
 
 
-# --- 3. Error analysis (Task 05.4, Omved, D-031): not built yet -------------------
+# --- 3. Error analysis (Task 05.4, Omved, D-031) -------------------------------
 
-def plot_confusion(experiment: str, normalize: bool = True):
-    """Normalised confusion matrix of one experiment (Task 05.4)."""
-    raise NotImplementedError("plot_confusion is Task 05.4 (Omved, D-031).")
-
-
-def top_confused_pairs(experiment: str, k: int = 5):
-    """Top-k off-diagonal (true, pred) pairs as a DataFrame (Task 05.4)."""
-    raise NotImplementedError("top_confused_pairs is Task 05.4 (Omved, D-031).")
+def _get_confusion_matrix(experiment: str) -> np.ndarray:
+    """Load the stored 10x10 confusion matrix from results/metrics/{experiment}_test.json."""
+    data = _read_json(config.METRICS_DIR / f"{experiment}_test.json")
+    return np.asarray(data["confusion_matrix"], dtype=np.int64)
 
 
-def plot_misclassified(experiment: str, true_c: int, pred_c: int, n: int = 16):
-    """Grid of test images of class true_c predicted as pred_c (Task 05.4)."""
-    raise NotImplementedError("plot_misclassified is Task 05.4 (Omved, D-031).")
+def plot_confusion(experiment: str, normalize: bool = True) -> plt.Figure:
+    """Normalised or raw confusion matrix of one experiment. Saves errors_confusion_matrix.png.
+
+    Diagonal cells represent correct classifications (recall for that class when normalized).
+    Off-diagonal cells represent systematic confusions (misclassifications) between pairs.
+    """
+    cm = _get_confusion_matrix(experiment)
+    if normalize:
+        row_sums = cm.sum(axis=1, keepdims=True)
+        matrix = np.divide(cm.astype(float), row_sums, out=np.zeros_like(cm, dtype=float), where=row_sums != 0)
+        fmt = ".2f"
+        vmax = 1.0
+        title_suffix = " (Row-Normalized)"
+    else:
+        matrix = cm
+        fmt = "d"
+        vmax = int(cm.max())
+        title_suffix = " (Raw Counts)"
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+    im = ax.imshow(matrix, cmap="Blues", interpolation="nearest", vmin=0, vmax=vmax)
+    ax.set_title(f"Confusion Matrix: {experiment}{title_suffix}", fontsize=13, pad=14)
+    ax.set_xlabel("Predicted Class", fontsize=11, labelpad=8)
+    ax.set_ylabel("Actual Class", fontsize=11, labelpad=8)
+    ax.set_xticks(range(config.NUM_CLASSES))
+    ax.set_xticklabels(config.CLASS_NAMES, rotation=35, ha="right", fontsize=9.5)
+    ax.set_yticks(range(config.NUM_CLASSES))
+    ax.set_yticklabels(config.CLASS_NAMES, fontsize=9.5)
+
+    cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+    cbar.set_label("Proportion" if normalize else "Count", fontsize=10)
+
+    thresh = vmax / 2.0
+    for i in range(config.NUM_CLASSES):
+        for j in range(config.NUM_CLASSES):
+            val = matrix[i, j]
+            text = f"{val:{fmt}}" if normalize else f"{int(val)}"
+            color = "white" if val > thresh else "black"
+            ax.text(j, i, text, ha="center", va="center", fontsize=8.5, color=color)
+
+    fig.tight_layout()
+    fig_name = "errors_confusion_matrix" if experiment == "rbf_svm_hog" else f"errors_confusion_{experiment}"
+    utils.save_fig(fig, fig_name)
+    return fig
 
 
-def model_agreement(exp_a: str, exp_b: str):
-    """Agreement counts between two experiments' saved y_pred (Task 05.4)."""
-    raise NotImplementedError("model_agreement is Task 05.4 (Omved, D-031).")
+def top_confused_pairs(experiment: str, k: int = 5) -> pd.DataFrame:
+    """Top-k off-diagonal (true, pred) pairs as a DataFrame with columns: (true, pred, count, rate).
+
+    Extracted from the stored test confusion matrix without touching test features.
+    """
+    cm = _get_confusion_matrix(experiment)
+    rows = []
+    for i in range(config.NUM_CLASSES):
+        row_sum = int(cm[i].sum())
+        for j in range(config.NUM_CLASSES):
+            if i != j:
+                count = int(cm[i, j])
+                rate = round(count / row_sum, 4) if row_sum > 0 else 0.0
+                rows.append({
+                    "true": config.CLASS_NAMES[i],
+                    "pred": config.CLASS_NAMES[j],
+                    "count": count,
+                    "rate": rate,
+                })
+
+    df = pd.DataFrame(rows)
+    df = df.sort_values(["count", "rate"], ascending=[False, False]).head(k).reset_index(drop=True)
+    return df
+
+
+def plot_misclassified(experiment: str, true_c, pred_c, n: int = 16) -> plt.Figure:
+    """Grid of test images of class true_c predicted as pred_c (Task 05.4 exception, D-011).
+
+    Uses stored y_pred from results/metrics/{experiment}_test.json and X_test from load_splits().
+    true_c and pred_c can be class index (int) or class name (str).
+    """
+    if isinstance(true_c, str):
+        if true_c not in config.CLASS_NAMES:
+            raise ValueError(f"Unknown class name: {true_c!r}")
+        true_c = config.CLASS_NAMES.index(true_c)
+    if isinstance(pred_c, str):
+        if pred_c not in config.CLASS_NAMES:
+            raise ValueError(f"Unknown class name: {pred_c!r}")
+        pred_c = config.CLASS_NAMES.index(pred_c)
+
+    true_name = config.CLASS_NAMES[true_c]
+    pred_name = config.CLASS_NAMES[pred_c]
+
+    test_json = _read_json(config.METRICS_DIR / f"{experiment}_test.json")
+    y_pred = np.asarray(test_json["y_pred"], dtype=np.int64)
+
+    from src.data import load_splits
+    splits = load_splits(verbose=False)
+    X_test = splits["X_test"]
+    y_test = splits["y_test"]
+
+    matching_idx = np.where((y_test == true_c) & (y_pred == pred_c))[0]
+    if len(matching_idx) == 0:
+        raise ValueError(f"No test images found where true={true_name} and pred={pred_name}")
+
+    selected_idx = matching_idx[:n]
+    ncols = min(4, len(selected_idx))
+    nrows = int(np.ceil(len(selected_idx) / ncols))
+
+    fig, axes = plt.subplots(nrows, ncols, figsize=(2.2 * ncols, 2.4 * nrows))
+    if nrows * ncols == 1:
+        axes = np.array([axes])
+    axes = np.asarray(axes).reshape(-1)
+
+    for i, idx in enumerate(selected_idx):
+        ax = axes[i]
+        ax.imshow(X_test[idx], cmap="gray", vmin=0.0, vmax=1.0)
+        ax.set_title(f"Test #{idx}", fontsize=9)
+        ax.axis("off")
+
+    for j in range(len(selected_idx), len(axes)):
+        axes[j].axis("off")
+
+    fig.suptitle(
+        f"Misclassified: True '{true_name}' -> Pred '{pred_name}'\n({experiment}, showing {len(selected_idx)} of {len(matching_idx)})",
+        fontsize=12, y=1.02,
+    )
+    fig.tight_layout()
+
+    slug_true = true_name.lower().replace("/", "_").replace(" ", "_")
+    slug_pred = pred_name.lower().replace("/", "_").replace(" ", "_")
+    fig_name = f"errors_misclassified_{slug_true}_vs_{slug_pred}"
+    utils.save_fig(fig, fig_name)
+    return fig
+
+
+def model_agreement(exp_a: str, exp_b: str) -> dict:
+    """Agreement counts between two experiments' saved y_pred.
+
+    Returns dict with keys: both_correct, both_incorrect, only_a_incorrect,
+    only_b_incorrect, same_wrong_label, total, agreement_pct.
+    """
+    json_a = _read_json(config.METRICS_DIR / f"{exp_a}_test.json")
+    json_b = _read_json(config.METRICS_DIR / f"{exp_b}_test.json")
+
+    pred_a = np.asarray(json_a["y_pred"], dtype=np.int64)
+    pred_b = np.asarray(json_b["y_pred"], dtype=np.int64)
+
+    from src.data import load_splits
+    splits = load_splits(verbose=False)
+    y_test = splits["y_test"]
+
+    corr_a = (pred_a == y_test)
+    corr_b = (pred_b == y_test)
+
+    both_correct = int(np.sum(corr_a & corr_b))
+    both_incorrect = int(np.sum((~corr_a) & (~corr_b)))
+    only_a_incorrect = int(np.sum((~corr_a) & corr_b))
+    only_b_incorrect = int(np.sum(corr_a & (~corr_b)))
+    same_wrong_label = int(np.sum((~corr_a) & (~corr_b) & (pred_a == pred_b)))
+    total = len(y_test)
+    agreement_pct = round(float((pred_a == pred_b).mean() * 100), 2)
+
+    return {
+        "both_correct": both_correct,
+        "both_incorrect": both_incorrect,
+        "only_a_incorrect": only_a_incorrect,
+        "only_b_incorrect": only_b_incorrect,
+        "same_wrong_label": same_wrong_label,
+        "total": total,
+        "agreement_pct": agreement_pct,
+    }
