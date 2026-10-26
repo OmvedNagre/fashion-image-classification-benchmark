@@ -79,6 +79,7 @@ Model files only build unfitted Pipelines and hold grids. Figures (e.g. the LR w
 |---|---|---|---|
 | `load_all_metrics(split="test")` | `"val"\|"test"\|"cv"` | list of dicts | Reads `results/metrics/*_{split}.json` |
 | `build_summary()` | — | DataFrame | Writes `results/summary.csv` |
+| `comparable_val_acc(experiment)` | experiment id | float | `val_acc` from `_val_full.json` if it exists, else `best_val_acc` from `_val.json` (D-029). Used by `pick_best_experiment()` and `build_summary()` |
 | `pick_best_experiment()` | — | experiment id | Highest **val** accuracy, using `_val_full.json` for subset-tuned experiments (D-029) |
 | `plot_pixels_vs_hog(df)` | summary df | Figure | RQ2 |
 | `plot_acc_vs_inference(df)` | summary df | Figure | RQ3 |

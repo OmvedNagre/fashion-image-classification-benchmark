@@ -1,0 +1,20 @@
+{
+ "experiment": "rbf_svm_hog",
+ "folds": 5,
+ "data": "trainval",
+ "subset": 10000,
+ "best_params": {
+  "C": 10,
+  "gamma": "scale"
+ },
+ "fold_acc": [
+  0.8765,
+  0.886,
+  0.8715,
+  0.8725,
+  0.881
+ ],
+ "mean_acc": 0.8775,
+ "std_acc": 0.0054,
+ "timestamp": "2026-10-25T19:41:29"
+}

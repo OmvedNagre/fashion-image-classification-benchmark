@@ -43,6 +43,8 @@ Rules:
 | D-027 | 2026-10-25 | v1/04 | RBF SVM stratified 10k subset tuning and full 60k refit scaling | Active |
 | D-028 | 2026-10-25 | v1/04 | Review fixes: reproducible figures, test guard, runtime notes, val and timing caveats | Active |
 | D-029 | 2026-10-25 | v1/05 prep | Comparable val scores: refit subset-tuned RBF SVM on full train before choosing the best model | Active |
+| D-030 | 2026-10-25 | v1/05 | Phase 05 aggregation: validation-selected model ranking and non-comparable timing rules | Active |
+| D-031 | 2026-10-26 | v1/05 | Phase 05 split between two owners and two PRs | Active |
 
 ---
 
@@ -1314,3 +1316,114 @@ about 3 points of val accuracy. `test_log.csv` and every existing metrics JSON a
 
 **Revisit if**
 Another subset-tuned model is added (e.g. a Phase 2 model tuned on a subset), or the full-train refit doesn't fit in memory.
+
+---
+
+### D-030 — Phase 05 aggregation: validation-selected model ranking and non-comparable timing rules
+- **Date:** 2026-10-25
+- **Phase:** v1/05 — Results, Error Analysis & README (Anand Mishra)
+- **Status:** Active
+- **Type:** algorithm
+
+**Context**
+Phase 05 aggregates the benchmark results across all 12 experiments into `results/summary.csv` and produces comparison visualizations (RQ2: pixels vs HOG, RQ3: accuracy vs inference latency, RQ4: per-class recall heatmap) and a 5-fold cross-validation stability check. Two integrity constraints are required:
+1. Identifying the "best model" must be done strictly on validation accuracy without touching or peeking at test results (D-005, system-design §3), using comparable scores from full 54k-train models (D-029).
+2. Phase 03 noted that Logistic Regression fits ran under validation contention (`timing_comparable: false`, D-023, D-024). In aggregating results, predictive metrics (accuracy, F1, recall) must be preserved while non-comparable timings must not distort comparisons.
+
+**Decision**
+1. In `src/results.py`: `pick_best_experiment()` and `build_summary()` determine validation accuracy by inspecting for `{experiment}_val_full.json` (created for subset-tuned models such as RBF SVM per D-029) and falling back to `best_val_acc` in `{experiment}_val.json`. Validation accuracy is never read from test data. The selection rule chooses `rbf_svm_hog` (val accuracy 0.9157).
+2. In `build_summary()`: When `timing_comparable` is False in the test JSON (for `logreg_pixels` and `logreg_hog`), `train_time_s` and `inference_ms_per_1000` are emitted as `NaN` (blank in CSV). Zero is never substituted.
+3. In `plot_acc_vs_inference()`: Filter out rows with `NaN` timing (Logistic Regression per D-024) and the dummy baseline where zero latency (`dummy_pixels` has 0.00 ms measured latency) is mathematically undefined on a logarithmic axis. Preserves original measurements in `results/summary.csv` and source JSONs without substitution, and explicitly states all exclusions in the figure footnote alongside cross-phase hardware notes (Phase 03 on Apple M3 vs Phase 04 on Apple M3 Pro; Dummy sandbox environment) and RBF SVM HOG inference upper bound (D-028).
+4. In `cross_validate_best()` (Task 05.3): Stratified 5-fold cross-validation is performed strictly on `trainval` (10,000 stratified subset for RBF SVM per D-005 and D-027), never touching the test set.
+
+**Alternatives considered**
+| Option | Why not chosen |
+|---|---|
+| Pick the best model using test accuracy | Information leakage: invalidates test set as an unbiased performance estimator |
+| Substitute 0.0 or mean values for contaminated LR timings | Distortion: 0 ms suggests instantaneous inference; violates benchmark accuracy |
+| Substitute an arbitrary small positive number (e.g. 0.001) for dummy zero latency | Falsifies measurement: original metrics must be preserved truthfully; mathematical incompatibilities on log scales are properly handled via documented exclusion |
+| Discard the entire LR experiments from summary table | Unnecessary: predictive metrics (accuracy, F1, class recall) remain fully valid and informative |
+| Run 5-fold CV on all 60k images for RBF SVM | Too slow: each fold fits on ~48k images, and one 60k RBF HOG fit already takes 451 s, so 5 folds would take well over 30 min (estimate, not measured). The 10k stratified subset is the planned protocol (phase file, D-005); it took ~2 min (130 s, re-run in review) |
+
+**Why**
+Preserves benchmark scientific integrity and prevents leakage. Test evaluation occurs exactly once per experiment and is never used for model selection. Handling non-comparable timings via explicit `NaN` avoids corrupting latency trade-off comparisons.
+
+**How it works**
+1. `results.load_all_metrics(split="test")` reads all 12 `*_test.json` files without touching test features.
+2. `results.build_summary()` merges comparable val scores, test metrics, and class recalls into `results/summary.csv` (12 rows, 19 columns).
+3. `results.pick_best_experiment()` checks `_val_full.json` then `_val.json`, selecting `rbf_svm_hog`.
+4. `experiment.cross_validate_best()` runs 5-fold CV on the 10k subset of `trainval`, producing `results/metrics/rbf_svm_hog_cv.json` (mean 0.8775 ± 0.0054).
+5. `test_log.csv` is never written to; its row count and MD5 remain unchanged.
+
+**Files touched**
+- `src/results.py`: new module implementing aggregation, comparison plots, and best model selection
+- `results/summary.csv`: aggregated 12-experiment summary table
+- `results/figures/results_pixels_vs_hog.png`, `results/figures/results_acc_vs_time.png`, `results/figures/results_recall_heatmap.png`
+- `results/metrics/rbf_svm_hog_cv.json`: stability check output
+- `docs/decisions.md`: this decision log entry
+- Review changes (lead, D-031): the shared val rule moved into `comparable_val_acc()`; the RQ3 chart footnote now lists the excluded experiments by name and calls rbf_svm_hog's timing an upper bound rather than blaming contention
+
+**Concepts worth learning**
+- **Validation vs Test Selection:** Selection on validation preserves unbiased generalization estimates on the final test split.
+- **Handling Missing/Contaminated Data:** Missing indicators (`NaN`) preserve sample inclusion for valid dimensions while isolating contaminated dimensions.
+- **Cross-Validation Stability:** Stratified k-fold CV within training data assesses estimator variance without risking test set leakage.
+
+**Result**
+5-fold CV of `rbf_svm_hog` (10k stratified subset):
+- Folds: `[0.8765, 0.8860, 0.8715, 0.8725, 0.8810]`
+- Mean accuracy: **0.8775** (87.75%)
+- Std accuracy: **0.0054** (±0.54%)
+- Summary table: 12 rows, `test_log.csv` MD5 unchanged.
+
+**Revisit if**
+A standardized single-machine re-benchmarking run is conducted for all 12 experiments to re-measure uniform inference and training latencies.
+
+---
+
+### D-031 — Phase 05 split between two owners and two PRs
+- **Date:** 2026-10-26
+- **Phase:** v1/05 — Results, Error Analysis & README
+- **Status:** Active
+- **Type:** tooling
+
+**Context**
+The team has five members but phases 01 and 02 were both built by the lead, so one member had no phase. Phase 05 is also
+the largest phase (7 tasks: tables, plots, CV, error analysis, notebook, README, docs). The workflow (AGENTS.md §1, §6)
+assumes one owner, one branch and one PR per phase.
+
+**Decision**
+Phase 05 is split in two, approved by the lead: **Part A** (tasks 05.1–05.3: summary table, comparison plots, CV) by
+Anand Mishra in PR #3 on `phase/v1-05-anand-results`; **Part B** (tasks 05.4–05.7: error analysis, notebook 05, README,
+docs and phase close) by Omved Nagre in a second PR, on a new branch from `main` after PR #3 is merged.
+
+**Alternatives considered**
+| Option | Why not chosen |
+|---|---|
+| One owner for all of phase 05 | Leaves one team member without a phase, and every member needs visible commits |
+| Both people commit to one branch and one PR | Two people pushing to one fork branch is easy to break (conflicts, force-push temptation); review would wait for both halves |
+| Split by topic (e.g. one person does all plots) | The tasks are already ordered so that Part B only needs Part A's finished functions; splitting by task is simpler |
+
+**Why**
+Each person gets their own commits and PR, and Part B starts from a reviewed, merged Part A instead of an unreviewed branch.
+
+**How it works**
+1. PR #3 (Part A) is reviewed and merged. `main` then has `build_summary()`, `pick_best_experiment()`,
+   `comparable_val_acc()`, the three `results_*` figures, `summary.csv` and `rbf_svm_hog_cv.json`.
+2. The four error-analysis functions in `results.py` are stubs that raise `NotImplementedError` until Part B.
+3. The phase stays `in-progress` after PR #3. Only Part B fills the Phase summary, sets the phase to `review` and
+   ticks the remaining done criteria.
+4. Part B's notebook 05 must *call* the Part A functions (so every committed output is reproducible from the repo) and must
+   **reuse** `rbf_svm_hog_cv.json` if it exists with the same params, the same guard pattern as the test JSONs (D-021).
+
+**Files touched**
+- `docs/decisions.md`: this entry
+- `docs/phases/v1/phase-05-results-analysis.md`: owners, branches, handover notes; one done criterion unticked (error analysis not built yet)
+- `docs/progress.md`: owners and session log
+- `src/results.py`: stub messages point to D-031
+
+**Concepts worth learning**
+- **Vertical split by task order:** later tasks depend only on the merged output of earlier ones, so two people never edit the same function.
+- **Reproducibility:** a committed result must be re-creatable by running committed code, not a private script.
+
+**Revisit if**
+Part B finds it needs to change a Part A function's signature or output; then update `module-interfaces.md` in Part B's PR.

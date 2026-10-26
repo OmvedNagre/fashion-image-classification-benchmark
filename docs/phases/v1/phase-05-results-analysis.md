@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Owner | _TBD_ (set when the phase starts) |
-| Status | not-started |
-| Branch | `phase/v1-05-results-analysis` |
+| Owner | Anand Mishra (05.1–05.3), Omved Nagre (05.4–05.7), split per D-031 |
+| Status | in-progress |
+| Branch | Part A: `phase/v1-05-anand-results` (PR #3); Part B: new branch from `main` after PR #3 merges |
 | Depends on | Phase v1/04 |
 | PRD features | F-11, F-12, F-13, F-14 |
 | idea.md workstream | WS5 — Evaluation, Error Analysis & Integration |
@@ -74,19 +74,19 @@ From v1/04 (PR #2 by Tanmay, merged 2026-10-25, review fixes in D-028):
 - `prd.md` → §3 research questions, §8 success metrics
 
 ## Tasks
-- [ ] 05.1 — `results.py`: `load_all_metrics`, `build_summary`, `pick_best_experiment` → `feat(results): aggregate metrics into summary table`
-- [ ] 05.2 — Comparison plots (RQ2, RQ3, RQ4) → `feat(results): add cross-model comparison plots`
-- [ ] 05.3 — 5-fold CV on the best (by val) experiment → `feat(results): add stability check for best model`
+- [x] 05.1 — `results.py`: `load_all_metrics`, `build_summary`, `pick_best_experiment` → `feat(results): aggregate metrics into summary table`
+- [x] 05.2 — Comparison plots (RQ2, RQ3, RQ4) → `feat(results): add cross-model comparison plots`
+- [x] 05.3 — 5-fold CV on the best (by val) experiment → `feat(results): add stability check for best model`
 - [ ] 05.4 — Error analysis: confusion matrix, top pairs, misclassified grids, model agreement → `feat(errors): add error analysis`
 - [ ] 05.5 — `05_results_analysis.ipynb` write-up: RQ answers + Phase 2 motivation → `feat(results): add results and analysis notebook`
 - [ ] 05.6 — Full README → `docs(readme): add setup, run order and results`
 - [ ] 05.7 — Update docs touched by this phase; progress shows v1 complete → `docs(phase-05): update docs and decisions`
 
 ## Done criteria
-- [ ] `summary.csv` contains all 12 experiments (dummy, logreg, knn, rf, linear_svm, rbf_svm × pixels, hog)
-- [ ] All figures in `results/figures/` are produced by code; none made by hand
-- [ ] `test_log.csv` shows each experiment evaluated once (or repeats explained in `decisions.md`); still 12 rows
-- [ ] `pick_best_experiment()` returns `rbf_svm_hog`, chosen from comparable val scores (D-029); CV and error analysis use it
+- [x] `summary.csv` contains all 12 experiments (dummy, logreg, knn, rf, linear_svm, rbf_svm × pixels, hog)
+- [x] All figures in `results/figures/` are produced by code; none made by hand
+- [x] `test_log.csv` shows each experiment evaluated once (or repeats explained in `decisions.md`); still 12 rows
+- [ ] `pick_best_experiment()` returns `rbf_svm_hog`, chosen from comparable val scores (D-029); CV and error analysis use it *(pick + CV done in Part A; error analysis is Part B)*
 - [ ] RQ1–RQ4 answered in notebook 05
 - [ ] Fresh-clone run following only the README reproduces the README table
 - [ ] Docs match what was built; decisions logged
@@ -96,6 +96,17 @@ From v1/04 (PR #2 by Tanmay, merged 2026-10-25, review fixes in D-028):
 2. Scratch check: the best experiment by **comparable** val (RBF from `_val_full.json`) is `rbf_svm_hog`, it is the one used
    for CV and error analysis, and the test score played no part in choosing it. `summary.csv`'s `val_acc` for `rbf_svm_hog` is 0.9157.
 3. Read the README top to bottom as a new teammate would. Every command works.
+
+## Part A → Part B handover (D-031)
+Done in Part A (PR #3): `load_all_metrics`, `comparable_val_acc`, `pick_best_experiment`, `build_summary`,
+`plot_pixels_vs_hog`, `plot_acc_vs_inference`, `plot_recall_heatmap`; `summary.csv`; the 3 `results_*` figures;
+`rbf_svm_hog_cv.json` (5-fold CV on the 10k subset: 0.8775 ± 0.0054). No notebook yet, so Part B must:
+- In notebook 05, **call** `build_summary()`, the three plot functions and `pick_best_experiment()` so all Part A outputs
+  regenerate from the notebook (How to verify step 1).
+- For CV, load `results/metrics/rbf_svm_hog_cv.json` if it exists and its `best_params` match; only otherwise call
+  `cross_validate_best("rbf_svm", make_rbf_svm, params, "hog", subset=config.SVM_TUNE_SUBSET)` (⏱ ~2 min on an M3).
+- Implement the four error-analysis stubs in `results.py` from the saved `y_pred` (no new test runs).
+- Note for the write-up: CV accuracy (0.8775) is lower than val (0.9157) because each CV fold trains on only 8k images, not 54k.
 
 ## Phase summary
 - **Built:**
