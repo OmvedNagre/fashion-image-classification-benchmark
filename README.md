@@ -1,6 +1,6 @@
 # Fashion-MNIST Classical ML Benchmark
 
-A rigorous, leak-free benchmark comparing classical machine learning algorithms on the [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) clothing classification dataset. We evaluate four core model families across two distinct feature representations (raw pixels vs. Histogram of Oriented Gradients), evaluate performance along accuracy, latency, and memory dimensions, and conduct comprehensive error analysis to motivate a Phase 2 Convolutional Neural Network (CNN).
+A leak-free, reproducible benchmark comparing classical machine learning algorithms on the [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) clothing classification dataset. We evaluate four core model families across two distinct feature representations (raw pixels vs. Histogram of Oriented Gradients), evaluate performance along accuracy, latency, and memory dimensions, and conduct comprehensive error analysis to motivate a Phase 2 Convolutional Neural Network (CNN).
 
 > **Contributors:** Built collaboratively across five sequential phases.
 > - **Phase 01:** Foundation & Data (Rajdeep)
@@ -72,23 +72,30 @@ Download the four official IDX files and automatically verify their published Za
 ```bash
 python -c "from src.data import download_raw; download_raw()"
 ```
-Raw files are saved in `data/raw/` (gitignored). If any checksum fails, the bad file is purged immediately.
+Raw files are saved in `data/raw/` (gitignored). If a checksum fails, the bad file is deleted and an error tells you to download again.
 
 ---
 
 ## 3. Benchmark Execution Order
 
-Run the notebooks sequentially from `notebooks/`. Each phase notebook relies on artifacts, caches, and models established by preceding phases:
+Open each notebook in `notebooks/` and run **Restart & Run All**, in order 01 → 05. Later notebooks use code and results
+from earlier ones.
 
-| Step | Notebook | Description | Expected Runtime |
-|---|---|---|---|
-| 1 | `notebooks/01_data_eda.ipynb` | Data integrity checks, class distributions, PCA projections, and t-SNE manifold analysis on train split | ⏱ ~2–3 min |
-| 2 | `notebooks/02_features.ipynb` | Flattened pixels (784-d) extraction, HOG grid sweep across 12 configurations using linear proxy, feature caching | ⏱ ~3–5 min |
-| 3 | `notebooks/03_linear_knn.ipynb` | Tuning and evaluation of Dummy baseline, Logistic Regression (L2 penalty), and k-NN (uniform & distance weighting) | ⏱ ~10–15 min |
-| 4 | `notebooks/04_rf_svm.ipynb` | Tuning and evaluation of Random Forest (300 trees), LinearSVC, and RBF SVM (10k subset tuning, 60k refit) | ⏱ ~15–20 min |
-| 5 | `notebooks/05_results_analysis.ipynb` | Aggregation into `summary.csv`, cross-model comparison plots, 5-fold CV stability, confusion matrix, error analysis, and synthesis | ⏱ <15 s |
+The repo ships with every tuning and test result (`results/metrics/*.json`), so notebooks 03–05 **reuse** them instead of
+re-tuning or re-testing, and the test set is never touched again. Delete a result JSON only if you really mean to redo that
+experiment (a repeated test run must be explained in `docs/decisions.md`).
 
-*Hardware Note:* Phase 03 was executed on an Apple M3 (8 GB RAM); Phase 04 was executed on an Apple M3 Pro (18 GB RAM). Runtimes will vary with available CPU cores.
+| Step | Notebook | What it does | ⏱ With the committed results (measured, fresh clone, Apple M3) | ⏱ From scratch (no result JSONs) |
+|---|---|---|---|---|
+| 1 | `01_data_eda.ipynb` | Data checks, class balance, sample grids, mean images, PCA / t-SNE views (train split only) | ~15 s | same |
+| 2 | `02_features.ipynb` | Pixel and HOG features (cached in `features/`), HOG settings sweep (12 configs, linear proxy) | ~20 s | a few min |
+| 3 | `03_linear_knn.ipynb` | Dummy, Logistic Regression, kNN: tune on val, one test run each | ~20 s | tens of minutes (kNN grid) |
+| 4 | `04_rf_svm.ipynb` | Random Forest, LinearSVC, RBF SVM (tuned on a 10k subset, refit on 60k) | ~40 s | ~2 h (LinearSVC tuning ~45 min, final fits ~45 min) |
+| 5 | `05_results_analysis.ipynb` | `summary.csv`, comparison plots, 5-fold CV, error analysis, RQ answers | ~10 s | ~2 min (CV) |
+
+Total with the committed results: under 2 minutes, and every file in `results/` comes out identical.
+
+*Hardware note:* the saved timings come from an Apple M3 (phase 03, except the dummy) and an Apple M3 Pro (phase 04). Runtimes vary with CPU cores.
 
 ---
 
@@ -113,48 +120,51 @@ Aggregated from all 12 completed experiments stored in `results/summary.csv`:
 
 *Footnotes on benchmark measurements:*
 - † **Logistic Regression timings:** Preserved as `NaN` (per D-024) because their test runs overlapped validation jobs causing CPU contention. Predictive metrics (accuracy, F1, recall) are fully valid and unaffected.
-- \* **Dummy baseline timings:** Recorded in a lightweight sandbox environment (`env.cpu = arm64`).
-- ‡ **RBF SVM HOG inference latency:** 28.9 s per 1,000 images is an upper bound (D-028) due to evaluating kernel dot products across >20,000 support vectors in 1,728 dimensions.
+- \* **Dummy baseline timings:** ~0 ms, measured on a different machine (`env.cpu = arm64`); not used in speed comparisons.
+- ‡ **RBF SVM HOG inference latency:** slow because each prediction is compared with all 26,343 support vectors in 1,728 dimensions; it also looks ~2× slower than expected, so treat 28.9 s as an upper bound (D-028).
+- Inference times are model-only. HOG models also need HOG extraction: ~216 ms per 1,000 images (`results/hog_sweep.csv`).
+- Model size is the pickled model in bytes (KB/MB = 1,000/1,000,000 bytes).
 
 ---
 
 ## 5. Key Findings & Synthesis
 
 ### Best Model Selection
-The overall best model is **`rbf_svm_hog`**, selected **strictly using comparable validation accuracy** (0.9157 on 54k train, D-029). Test evaluation confirmed this choice with **91.08% test accuracy** and **91.08% Macro F1**. Stratified 5-fold cross-validation on `trainval` yielded a stable **0.8775 ± 0.0054** (the CV score is lower because each fold trains on 8,000 images rather than the full 54,000).
+The overall best model is **`rbf_svm_hog`**, selected **strictly using comparable validation accuracy** (0.9157 on 54k train, D-029). Its test result, reported for information only, is **91.08% accuracy** and **0.9108 macro F1**. Val accuracy has about ±0.4 points of noise (6,000 images). Stratified 5-fold cross-validation on `trainval` yielded a stable **0.8775 ± 0.0054** (the CV score is lower because each fold trains on 8,000 images rather than the full 54,000).
 
 ### Core Conclusions
-1. **RQ1 (Raw Pixels Ceiling):** Classical models on raw pixels max out at **89.70%** (RBF SVM). Linear models struggle (~83.8%–84.7%) because raw pixel intensity distributions lack geometric structure and translation invariance.
-2. **RQ2 (Impact of HOG):** HOG dramatically boosts linear models (**+5.20% for LinearSVC**, **+4.14% for Logistic Regression**) and pushes RBF SVM past 91%. In contrast, Random Forest slightly degrades (**-0.53%**) because axis-aligned decision trees struggle with dense, correlated orientation histograms compared to sparse raw pixel values.
-3. **RQ3 (Production Pareto Frontier):**
-   - **Low Latency Champion:** `rf_pixels` classifies 1,000 items in **12.16 ms** with 87.56% accuracy and requires no preprocessing scaling.
-   - **Compact Linear Compromise:** `linear_svm_hog` achieves **88.98%** accuracy in **2.62 ms** inference time with a compact **180 KB** footprint.
-   - **Accuracy Maximum:** `rbf_svm_hog` delivers **91.08%**, but requires **28.9 seconds per 1,000 images**, making it impractical for high-throughput serving without kernel approximations.
+1. **RQ1 (Raw Pixels Ceiling):** Classical models on raw pixels max out at **89.70%** (RBF SVM). Linear models reach only 83.8%–84.7%: a pixel only says how bright one spot is, so a straight boundary can't capture shape. kNN reaches 86.1% (k=3, Manhattan) and Random Forest 87.6%.
+2. **RQ2 (Impact of HOG):** HOG boosts the linear models (**+5.20 points for LinearSVC**, **+4.14 for Logistic Regression**) and pushes RBF SVM to 91.08% (+1.38). It does not help Random Forest (**−0.53**) or kNN (+0.20); a plausible reason is that one raw pixel is more informative on its own than one HOG bin, which is what a tree split looks at.
+3. **RQ3 (Speed vs accuracy vs size):** counting HOG extraction (~216 ms per 1,000 images), end-to-end per 1,000 images:
+   - **Fastest above 87%:** `rf_pixels`, ~12 ms, 87.56%, but a 366 MB model.
+   - **Best accuracy for its size:** `linear_svm_hog`, ~219 ms (almost all HOG extraction), 88.98%, 181 KB.
+   - **Most accurate:** `rbf_svm_hog`, 91.08%, ~29 s (upper bound), too slow for high-volume use without kernel approximations.
 4. **RQ4 (Systematic Error Modes):**
    - Errors are heavily concentrated in the upper-body clothing cluster: **Shirt (Class 6), T-shirt/top (Class 0), Pullover (Class 2), and Coat (Class 4)**.
-   - **Shirt is universally the hardest class** (lowest recall across all 12 models: 50.9% to 75.2%).
-   - The top two confused directed pairs are **Shirt → T-shirt/top** (10.4% error rate) and **T-shirt/top → Shirt** (9.1% error rate). At 28×28 grayscale resolution, collar folds, button plackets, and sleeve cuffs blur into nearly identical silhouettes that fixed-grid HOG extractors cannot disambiguate.
+   - **Shirt is the hardest class** for all 10 trained models (recall 50.9% to 75.2%). Mistakes among these four classes are 56–66% of each model's errors.
+   - The top two confused directed pairs are **Shirt → T-shirt/top** (10.4% error rate) and **T-shirt/top → Shirt** (9.1% error rate). At 28×28 grayscale, collars, buttons and cuffs cover only a few pixels, and the outlines of these garments are very similar.
+   - The two RBF SVMs (HOG and pixels) both get 515 test images wrong, and 391 of those with the *same* wrong label: many of these images are ambiguous in the data itself.
 
 ---
 
 ## 6. Scientific Rigor & No-Leakage Policy
 
-This benchmark strictly adheres to university capstone scientific controls (`AGENTS.md` §4):
-- **Zero Test Set Tuning:** Hyperparameters and feature configurations are selected exclusively on the holdout validation set.
+The rules every phase followed (`AGENTS.md` §4):
+- **No tuning on test:** hyperparameters, HOG settings and the best model are chosen on the validation set only. The test set is used once per experiment; error analysis reads the saved predictions.
 - **Pipeline-Encapsulated Scaling:** `StandardScaler` lives strictly inside scikit-learn `Pipeline` objects. Feature scalers never see validation or test distributions.
-- **Append-Only Test Audit Trail:** Every execution of `final_test_run()` appends to `results/test_log.csv`. The log confirms exactly 12 runs (one per experiment) with zero re-tuning leakage.
+- **Append-Only Test Audit Trail:** Every execution of `final_test_run()` appends to `results/test_log.csv`. It has exactly 12 rows: one test run per experiment.
 - **Reproducible Figures:** All figures in `results/figures/` are generated directly from code and tracked in version control.
 
 ---
 
 ## 7. Future Work: Capstone Phase 2 (CNN)
 
-Classical machine learning has established an empirical ceiling of ~91.1% on Fashion-MNIST. The primary bottleneck is the representational limit of fixed, handcrafted spatial extractors (HOG) on overlapping garment silhouettes (Shirt vs. T-shirt vs. Coat).
+Our best classical model reaches 91.08% test accuracy. The primary bottleneck is the representational limit of fixed, handcrafted spatial extractors (HOG) on overlapping garment silhouettes (Shirt vs. T-shirt vs. Coat).
 
 **Capstone Phase 2** will introduce deep learning architectures using the identical data split and `evaluate()` harness:
 1. **Hierarchical Representation Learning:** Convolutional layers will learn localized feature detectors directly from data, automatically progressing from low-level edges to mid-level collar/button textures and high-level garment compositions.
 2. **Translation Equivariance:** Weight sharing in convolutional filters will detect fine garment attributes regardless of slight posture or centering shifts.
-3. **Targeted Error Resolution:** A compact 2–3 layer CNN with Batch Normalization and Dropout will be trained to resolve the ~500 mutual errors identified in our error analysis, targeting >93–94% accuracy with sub-millisecond inference.
+3. **Targeted error resolution (hypothesis to test):** a small CNN (2–3 conv blocks, batch norm, dropout) on the same split should beat 91.08%, mainly by fixing the upper-body confusions (397 of the 515 images both RBF SVMs get wrong are T-shirt/Pullover/Coat/Shirt).
 
 ---
 
@@ -181,13 +191,14 @@ fashion-image-classification-benchmark/
 ├── data/splits/            # val_indices.npy (committed fixed validation split)
 ├── results/                # Benchmark outputs
 │   ├── metrics/            # Validation, test, and CV JSON files per experiment
-│   ├── figures/            # 300 DPI publication plots (eda_*, features_*, linear_*, results_*, errors_*)
+│   ├── figures/            # 300 dpi plots (eda_*, features_*, linear_*, treekernel_*, results_*, errors_*)
 │   ├── summary.csv         # Aggregated 12-experiment benchmark table
 │   └── test_log.csv        # Append-only audit log of final test runs
 ├── docs/                   # Full capstone engineering documentation
 │   ├── prd.md              # Requirements and research questions
-│   ├── system-design.md    # Architecture and leakage controls
-│   ├── decisions.md        # Comprehensive ADR decision log (D-001 to D-031)
+│   ├── architecture.md     # Components and folder layout
+│   ├── system-design.md    # Runtime flows and leakage controls
+│   ├── decisions.md        # Decision log with reasons (D-001 to D-032)
 │   ├── module-interfaces.md # Function contracts and signatures
 │   ├── data-formats.md     # File formats, schemas, and naming conventions
 │   ├── progress.md         # Phase tracking and session log

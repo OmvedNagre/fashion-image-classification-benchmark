@@ -22,6 +22,11 @@ each phase starts. Full workflow: [`AGENTS.md`](../AGENTS.md) §6.
 
 ## Session log
 <!-- Newest first. 2–4 lines per session. Keep only the last ~10 sessions; older ones are in git history. -->
+### 2026-10-26 (v1/05 Part B review, lead)
+- Audited PR #4: no leakage; error-analysis numbers match the saved predictions. Fixed on the PR branch (D-032): wrong numbers in the write-up (HOG extraction 216 ms not ~30 ms, kNN k=3, recall ranges, error shares, val vs test), simpler error-analysis code, interfaces and figure names synced.
+- Verified: fresh clone, notebooks 01→05 run in ~100 s with 0 errors and every file in `results/` regenerates identically; test_log.csv still 12 rows.
+- Next: merge PR #4, mark v1/05 and v1 done.
+
 ### 2026-10-26 (v1/05 Part B — Omved Nagre)
 - Done: Tasks 05.4 (error analysis in results.py: plot_confusion, top_confused_pairs, plot_misclassified, model_agreement; 6 publication figures), 05.5 (notebook 05_results_analysis.ipynb top-to-bottom run with verified outputs, answers to RQ1–RQ4, Phase 2 CNN motivation), 05.6 (complete README.md), and 05.7 (phase close and docs).
 - Verified: summary.csv has 12 rows; best model is rbf_svm_hog (91.08% test acc, 0.8775 CV); top confusion Shirt vs T-shirt/top (10.4%); test_log.csv untouched (MD5 identical, 12 rows). All Done criteria met.
